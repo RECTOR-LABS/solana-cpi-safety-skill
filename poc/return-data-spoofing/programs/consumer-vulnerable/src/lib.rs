@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::{invoke, get_return_data, set_return_data};
-use anchor_lang::solana_program::instruction::Instruction;
+use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 
 declare_id!("3kcfr8RXrCSP11tHyhm9j6WRBP3vTRBgZLDLWj5LocYb"); // replaced by `anchor keys sync`
 
@@ -36,6 +36,39 @@ pub mod consumer_vulnerable {
         set_return_data(&price.to_le_bytes());
         Ok(())
     }
+
+    /// VULNERABLE (Variant B - deeper-stack leak): CPIs a benign-looking `relay`
+    /// that internally CPIs a deeper oracle and returns without setting return
+    /// data. The slot is cleared on CPI entry but not on return, so it still holds
+    /// the DEEP program's bytes -- which this consumer adopts without checking the
+    /// producer, even though it only ever called the relay.
+    pub fn consume_via_relay(ctx: Context<ConsumeViaRelay>) -> Result<()> {
+        let ix = Instruction {
+            program_id: ctx.accounts.relay_program.key(),
+            accounts: vec![AccountMeta::new_readonly(ctx.accounts.deep_oracle.key(), false)],
+            data: quote_discriminator().to_vec(),
+        };
+        invoke(
+            &ix,
+            &[
+                ctx.accounts.relay_program.to_account_info(),
+                ctx.accounts.deep_oracle.to_account_info(),
+            ],
+        )?;
+
+        // BUG: no producer check. The relay set nothing; the slot carries the deep
+        // oracle's bytes, which this consumer adopts as if the relay produced them.
+        let (_producer, bytes) = get_return_data().ok_or(error!(Err::NoReturnData))?;
+        let price = u64::from_le_bytes(
+            bytes
+                .get(..8)
+                .ok_or(error!(Err::BadData))?
+                .try_into()
+                .map_err(|_| error!(Err::BadData))?,
+        );
+        set_return_data(&price.to_le_bytes());
+        Ok(())
+    }
 }
 
 /// Anchor instruction discriminator for "quote":
@@ -50,6 +83,15 @@ pub struct ConsumePrice<'info> {
     /// CHECK: oracle program invoked via CPI; intentionally unvalidated in the
     /// vulnerable variant to demonstrate the attack surface.
     pub oracle_program: UncheckedAccount<'info>,
+    pub payer: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ConsumeViaRelay<'info> {
+    /// CHECK: the relay program invoked via CPI (a benign-looking passthrough).
+    pub relay_program: UncheckedAccount<'info>,
+    /// CHECK: the deeper oracle the relay will invoke; forwarded through.
+    pub deep_oracle: UncheckedAccount<'info>,
     pub payer: Signer<'info>,
 }
 

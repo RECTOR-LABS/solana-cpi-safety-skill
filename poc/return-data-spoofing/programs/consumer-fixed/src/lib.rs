@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::program::{invoke, get_return_data, set_return_data};
-use anchor_lang::solana_program::instruction::Instruction;
+use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
 
 declare_id!("AVJRKqzgt7msS6a9zNGxv2iNHfbfHW8wnoEYABQkNfy1"); // replaced by `anchor keys sync`
 
@@ -58,6 +58,40 @@ pub mod consumer_fixed {
         set_return_data(&price.to_le_bytes());
         Ok(())
     }
+
+    /// FIXED (Variant B - deeper-stack leak): CPIs a benign-looking `relay` that
+    /// internally CPIs a deeper oracle. The relay sets no return data, so the slot
+    /// carries the DEEP program's bytes. The producer check still authenticates the
+    /// source: a deeper attacker is rejected, only EXPECTED_ORACLE is accepted --
+    /// proving the producer check matters even when you only called the relay.
+    pub fn consume_via_relay(ctx: Context<ConsumeViaRelay>) -> Result<()> {
+        let ix = Instruction {
+            program_id: ctx.accounts.relay_program.key(),
+            accounts: vec![AccountMeta::new_readonly(ctx.accounts.deep_oracle.key(), false)],
+            data: quote_discriminator().to_vec(),
+        };
+        invoke(
+            &ix,
+            &[
+                ctx.accounts.relay_program.to_account_info(),
+                ctx.accounts.deep_oracle.to_account_info(),
+            ],
+        )?;
+
+        // LOAD-BEARING FIX: authenticate the producer even though we called the
+        // relay -- the bytes actually came from the deepest setter, not the relay.
+        let (producer, bytes) = get_return_data().ok_or(error!(Err::NoReturnData))?;
+        require_keys_eq!(producer, EXPECTED_ORACLE, Err::UntrustedProducer);
+        let price = u64::from_le_bytes(
+            bytes
+                .get(..8)
+                .ok_or(error!(Err::BadData))?
+                .try_into()
+                .map_err(|_| error!(Err::BadData))?,
+        );
+        set_return_data(&price.to_le_bytes());
+        Ok(())
+    }
 }
 
 /// Anchor instruction discriminator for "quote":
@@ -72,6 +106,15 @@ pub struct ConsumePrice<'info> {
     /// CHECK: validated against EXPECTED_ORACLE inside consume_price — only
     /// the pinned price_oracle program is accepted.
     pub oracle_program: UncheckedAccount<'info>,
+    pub payer: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ConsumeViaRelay<'info> {
+    /// CHECK: the relay program invoked via CPI (a benign-looking passthrough).
+    pub relay_program: UncheckedAccount<'info>,
+    /// CHECK: the deeper oracle the relay will invoke; forwarded through.
+    pub deep_oracle: UncheckedAccount<'info>,
     pub payer: Signer<'info>,
 }
 
