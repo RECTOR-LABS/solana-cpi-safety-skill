@@ -10,7 +10,7 @@ import {
   sendIx,
   lamports,
   SOL,
-} from "./harness.ts";
+} from "./harness.js";
 
 const D = "target/deploy";
 
@@ -63,10 +63,11 @@ test("EXPLOIT: vault_vulnerable accepts fake_token program substitution", async 
 
   const rd = result.returnData();
   // The fake_token program set return data [1u8] — prove the attacker's program ran
+  const marker = new Uint8Array(rd.data())[0];
   assert.strictEqual(
-    new Uint8Array(rd.data())[0],
+    marker,
     1,
-    `expected fake_token to set return data byte 0 = 1 (attacker ran), got ${new Uint8Array(rd.data())[0]}`,
+    `expected fake_token to set return data byte 0 = 1 (attacker ran), got ${marker}`,
   );
 });
 
@@ -98,9 +99,10 @@ test("POSITIVE CONTROL: vault_fixed accepts real_token", async () => {
 
   const rd = result.returnData();
   // The real_token program set return data [0u8]
+  const marker = new Uint8Array(rd.data())[0];
   assert.strictEqual(
-    new Uint8Array(rd.data())[0],
+    marker,
     0,
-    `expected real_token to set return data byte 0 = 0, got ${new Uint8Array(rd.data())[0]}`,
+    `expected real_token to set return data byte 0 = 0, got ${marker}`,
   );
 });

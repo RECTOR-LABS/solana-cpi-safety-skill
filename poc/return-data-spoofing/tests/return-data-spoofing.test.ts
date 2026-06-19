@@ -10,7 +10,7 @@ import {
   sendIx,
   lamports,
   SOL,
-} from "./harness.ts";
+} from "./harness.js";
 
 const D = "target/deploy";
 
