@@ -32,9 +32,9 @@ rg -n 'let\s*\(\s*_+\s*,' --type rust | grep 'get_return_data'
   - A producer check alone closes the spoofing hole; a callee pin is defense-in-depth (fail fast).
   - Severity: **High** (if producer check also absent: Critical; if producer check present: defense-in-depth gap, High)
 
-- [ ] Could the return-data slot hold a stale value from an earlier program in the same instruction (Variant B)?
-  - The producer check defends against this: a stale producer id is not EXPECTED_ORACLE and fails the check.
-  - Note: verify the producer check is in place even on code paths where the callee is pinned.
+- [ ] Could the slot hold a stale value surfaced from a *deeper* CPI (Variant B)? The slot is cleared on CPI entry but not on return, so a callee that returns without overwriting can forward a deeper program's return data.
+  - The producer check rejects any stale value whose producer is not EXPECTED_ORACLE. Handle `None` (an immediate callee that set nothing yields None, not stale data).
+  - Freshness caveat: if the trusted oracle can be invoked deeper in the call tree, the producer can match while the bytes belong to another call — bind the data to this call (clear-before, require-non-empty-after).
   - Severity: **High**
 
 ---
