@@ -96,10 +96,11 @@ For custom install location (project-local or custom path):
 
 ### Run a PoC
 
+The compiled programs and their keypairs are committed, so the PoCs run with Node alone — no Solana/Anchor toolchain required.
+
 ```bash
 # Return-data spoofing PoC
 cd poc/return-data-spoofing
-anchor build
 npm install
 npm test
 # Expected output:
@@ -111,7 +112,6 @@ npm test
 ```bash
 # Arbitrary CPI PoC
 cd poc/arbitrary-cpi
-anchor build
 npm install
 npm test
 # Expected output:
@@ -119,6 +119,10 @@ npm test
 #   [DEFENSE]          - rejected with UnauthorizedProgram
 #   [POSITIVE CONTROL] - real SPL Token call succeeded
 ```
+
+#### Rebuild the programs from source (optional)
+
+With Anchor 1.0.2 and the Solana toolchain installed, run `anchor build` inside a `poc/<scenario>/` directory. The committed program keypairs keep the program ids stable across rebuilds.
 
 ### Use in Claude Code
 
@@ -148,6 +152,14 @@ The resulting `.gitmodules` block (ready to paste):
 ```
 
 ## Requirements (for the PoCs)
+
+To run the PoCs (primary path — programs are precompiled):
+
+| Tool | Version |
+|------|---------|
+| Node.js | >= 20 |
+
+To rebuild the programs from source (optional):
 
 | Tool | Version |
 |------|---------|
