@@ -5,3 +5,7 @@ dist/
 *.log
 .env
 .env.*
+
+# Internal planning / strategy — not for the public skill repo
+docs/superpowers/
+/ROADMAP.md
