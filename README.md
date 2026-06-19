@@ -1,41 +1,223 @@
 # solana-cpi-safety-skill
 
-A Claude Code / Codex skill that hardens Solana cross-program invocations (CPI) — with first-class coverage of the **CPI return-data spoofing** exploit class.
+Solana CPI safety skill for Claude Code — detects and prevents four cross-program invocation vulnerability classes, with first-class coverage of CPI return-data spoofing.
 
-> Status: in active development for the Superteam x Solana AI Kit bounty (submission window closes 2026-07-01). This README is finalized at submission.
+## What it is
 
-## The problem
+Cross-program invocation is Solana's most common source of severe, exploitable bugs. This skill teaches Claude Code to recognize, explain, and fix the four classes that account for the majority of High and Critical audit findings:
 
-Cross-program invocation is Solana's most common source of severe, exploitable bugs:
+### The four CPI vulnerability classes
 
-- **Return-data spoofing** — trusting `get_return_data()` without verifying which program produced it.
-- **Arbitrary CPI** — invoking a caller-supplied program id (fake SPL Token, reversed transfers).
-- **Stale-account-after-CPI** — reading account state a callee mutated, without reloading.
-- **PDA CPI signing** — `invoke_signed` with non-canonical bumps or leaked signer seeds.
+| Class | Risk | What goes wrong |
+|-------|------|-----------------|
+| **CPI return-data spoofing** | Critical | Trusting `get_return_data()` without verifying the producing program. Any program can write to the return-data slot — a rogue caller replaces an oracle price before your program reads it. |
+| **Arbitrary CPI** | High | Invoking a caller-supplied program id — enables fake SPL Token programs and attacker-controlled code executing inside the victim vault. |
+| **Stale account after CPI** | High | Reading account state a callee mutated without reloading from the ledger. |
+| **PDA CPI signing** | Medium-High | `invoke_signed` with non-canonical bumps or leaked signer seeds — enables unauthorized signing. |
 
-These sit in the dominant severe-bug category for Solana programs: logic, input-validation, and access-control errors account for roughly 85% of High and Critical findings across audited programs.
+### The novel core: CPI return-data spoofing
 
-## What it does
+The crown-jewel coverage is CPI return-data spoofing. It is the least-documented of the four classes and the hardest to catch in review. The attack surface is the `set_return_data` / `get_return_data` syscall pair: any program invoked before yours (or by yours) can overwrite the slot. A DeFi program that calls an oracle CPI and then reads `get_return_data()` without checking `program_id == ORACLE_PROGRAM_ID` is fully exploitable.
 
-A progressive-disclosure skill that routes by task to focused sub-skills:
+This skill is anchored on a real upstream-fixed finding: Anchor CPI return-data spoofing, CVSS 7.5, fixed upstream, placing 1st of 116 across a 14-protocol audit.
 
-| Task | Sub-skill |
-|------|-----------|
-| Detect and fix return-data spoofing | `skill/cpi-return-data-spoofing.md` |
-| Detect arbitrary-CPI / program substitution | `skill/arbitrary-cpi.md` |
-| Fix stale-account-after-CPI | `skill/account-reload.md` |
-| Harden PDA CPI signing | `skill/pda-cpi-signing.md` |
+Both Anchor and native/Pinocchio patterns are covered.
 
-Plus an `audit-cpi` command and a `cpi-auditor` agent that scan a repository for these patterns, and a runnable LiteSVM proof-of-concept that demonstrates the return-data exploit — a failing test before the fix, passing after.
+## What is inside
 
-## Install
+### Skill bundle
 
-Matches the Solana AI Kit skill convention (`install.sh` / `install-custom.sh`).
+```
+skill/
+  SKILL.md                      # Routing entry point
+  cpi-return-data-spoofing.md   # Crown jewel sub-skill
+  arbitrary-cpi.md              # Arbitrary CPI sub-skill
+  account-reload.md             # Stale account sub-skill
+  pda-cpi-signing.md            # PDA signing sub-skill
+  poc-harness.md                # PoC test harness guide
+  cpi-checklist.md              # Pre-audit CPI checklist
 
-## Why this skill
+agents/
+  cpi-auditor.md                # Autonomous CPI audit agent
 
-Built by a Solana security auditor who found this exact bug class in production: an Anchor CPI return-data spoofing vulnerability, CVSS 7.5, fixed upstream — work that placed 1st of 116 across a 14-protocol audit contest.
+commands/
+  audit-cpi.md                  # /audit-cpi command
+
+rules/
+  rust.md                       # Rust code rule (Cursor .mdc)
+
+poc/
+  return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC
+  arbitrary-cpi/                # Runnable LiteSVM + TypeScript PoC
+```
+
+### The /audit-cpi command
+
+Invoke `/audit-cpi` in any Claude Code session to scan a Solana repository for all four CPI vulnerability classes and produce a structured finding report with remediation steps.
+
+### The cpi-auditor agent
+
+A dedicated sub-agent that performs systematic CPI audits. Routes to the appropriate sub-skill for each finding class, writes exploit PoC sketches, and proposes fixes aligned with Anchor or native/Pinocchio idioms.
+
+### The rust.md rule
+
+A Rust code rule in Cursor `.mdc` format (`globs:` frontmatter). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
+
+### Two runnable PoCs
+
+Each PoC has an Anchor program (attacker + victim) and a TypeScript LiteSVM test suite with three cases:
+
+**poc/return-data-spoofing/**
+- EXPLOIT: victim adopts the spoofed price written by the attacker program
+- DEFENSE: `UntrustedProducer` error raised when program_id check fails
+- POSITIVE CONTROL: accepts return data from the real oracle program
+
+**poc/arbitrary-cpi/**
+- EXPLOIT: attacker substitutes a fake SPL Token program; attacker-controlled code executes inside the vault's CPI
+- DEFENSE: explicit program_id check rejects the substitution before any CPI is opened
+- POSITIVE CONTROL: the real SPL Token program succeeds
+
+## Quickstart
+
+### Install (standalone)
+
+```bash
+git clone https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git
+cd solana-cpi-safety-skill
+./install.sh
+```
+
+For custom install location (project-local or custom path):
+
+```bash
+./install-custom.sh
+# or: ./install-custom.sh /path/to/target
+```
+
+### Run a PoC
+
+The compiled programs and their keypairs are committed, so the PoCs run with Node alone — no Solana/Anchor toolchain required.
+
+```bash
+# Return-data spoofing PoC
+cd poc/return-data-spoofing
+npm install
+npm test
+```
+
+3 tests run, 3 pass:
+- EXPLOIT: "vulnerable consumer trusts spoofed return data" — tx succeeds, consumer
+  adopts attacker-set price 1 (spoofed value confirmed in return data)
+- DEFENSE: "fixed consumer rejects attacker oracle" — tx fails with error UntrustedProducer
+- POSITIVE CONTROL: "fixed consumer accepts legitimate oracle" — tx succeeds, consumer
+  reads real oracle price 50000
+
+```bash
+# Arbitrary CPI PoC
+cd poc/arbitrary-cpi
+npm install
+npm test
+```
+
+3 tests run, 3 pass:
+- EXPLOIT: "vault_vulnerable accepts fake_token program substitution" — tx succeeds,
+  return data byte 0 = 1 proving fake_token (attacker program) executed
+- DEFENSE: "vault_fixed rejects fake_token program substitution" — tx fails with error
+  WrongTokenProgram
+- POSITIVE CONTROL: "vault_fixed accepts real_token" — tx succeeds, return data byte 0 = 0
+
+#### Rebuild the programs from source (optional)
+
+With Anchor 1.0.2 and the Solana toolchain installed, run `anchor build` inside a `poc/<scenario>/` directory. The committed program keypairs keep the program ids stable across rebuilds.
+
+### Use in Claude Code
+
+After installing, open any Claude Code session in a Solana project and ask:
+
+```
+Audit this program for CPI vulnerabilities
+/audit-cpi
+Are there any return-data spoofing risks in programs/my-program/src/lib.rs?
+Review this CPI call for arbitrary-program substitution
+```
+
+## Adding to Solana AI Kit
+
+The kit (solanabr/solana-ai-kit) registers external skills as git submodules under `.claude/skills/ext/<name>`. To add this skill:
+
+```bash
+git submodule add https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git .claude/skills/ext/solana-cpi-safety
+```
+
+The resulting `.gitmodules` block (ready to paste):
+
+```
+[submodule ".claude/skills/ext/solana-cpi-safety"]
+    path = .claude/skills/ext/solana-cpi-safety
+    url = https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git
+```
+
+## Requirements (for the PoCs)
+
+To run the PoCs (primary path — programs are precompiled):
+
+| Tool | Version |
+|------|---------|
+| Node.js | >= 20 |
+
+To rebuild the programs from source (optional):
+
+| Tool | Version |
+|------|---------|
+| Anchor | 1.0.2 |
+| Solana / Agave CLI | 3.x |
+| Rust | 1.85+ |
+| Node.js | >= 20 |
+
+The skill bundle (skill/, commands/, agents/, rules/) has no runtime requirements — it is plain Markdown.
+
+## Repository structure
+
+```
+solana-cpi-safety-skill/
+  README.md                   # This file
+  CLAUDE.md                   # Contributor guidance
+  LICENSE                     # MIT
+  install.sh                  # Standard installer
+  install-custom.sh           # Custom-path installer
+
+  skill/
+    SKILL.md
+    cpi-return-data-spoofing.md
+    arbitrary-cpi.md
+    account-reload.md
+    pda-cpi-signing.md
+    poc-harness.md
+    cpi-checklist.md
+
+  agents/
+    cpi-auditor.md
+
+  commands/
+    audit-cpi.md
+
+  rules/
+    rust.md
+
+  poc/
+    return-data-spoofing/
+      programs/               # Anchor victim + attacker programs
+      tests/                  # LiteSVM TypeScript test suite
+    arbitrary-cpi/
+      programs/               # Anchor victim + attacker programs
+      tests/                  # LiteSVM TypeScript test suite
+```
 
 ## License
 
-MIT.
+MIT — see [LICENSE](LICENSE) for details.
+
+---
+
+Maintained by [RECTOR-LABS](https://github.com/RECTOR-LABS).
+Built for the Superteam x Solana AI Kit bounty.

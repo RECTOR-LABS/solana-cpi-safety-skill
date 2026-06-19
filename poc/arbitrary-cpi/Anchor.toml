@@ -1,0 +1,19 @@
+[toolchain]
+anchor_version = "1.0.2"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+fake_token = "AswVGd54VVJ1KYVNQaST3vpyhb5Am7qvBFYkcwTowXfd"
+real_token = "8P8ZC7vFPBYfMbXShhJC8qV6BicFdM7usCuTDQtnZUR4"
+vault_fixed = "7Me49SEKUQJ9UEgzfSYMFL1W26nQZSF8n5epwSBGoMzo"
+vault_vulnerable = "AsG9s8ZnxvmnoXRST8kK2WcP5MBAxu7VRFqVwap7jJqM"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "node --import tsx --test --test-concurrency=1 'tests/**/*.test.ts'"
