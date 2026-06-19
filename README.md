@@ -11,7 +11,7 @@ Cross-program invocation is Solana's most common source of severe, exploitable b
 | Class | Risk | What goes wrong |
 |-------|------|-----------------|
 | **CPI return-data spoofing** | Critical | Trusting `get_return_data()` without verifying the producing program. Any program can write to the return-data slot — a rogue caller replaces an oracle price before your program reads it. |
-| **Arbitrary CPI** | High | Invoking a caller-supplied program id — enables fake SPL Token programs, reversed transfers, drained vaults. |
+| **Arbitrary CPI** | High | Invoking a caller-supplied program id — enables fake SPL Token programs and attacker-controlled code executing inside the victim vault. |
 | **Stale account after CPI** | High | Reading account state a callee mutated without reloading from the ledger. |
 | **PDA CPI signing** | Medium-High | `invoke_signed` with non-canonical bumps or leaked signer seeds — enables unauthorized signing. |
 
@@ -73,8 +73,8 @@ Each PoC has an Anchor program (attacker + victim) and a TypeScript LiteSVM test
 - POSITIVE CONTROL: accepts return data from the real oracle program
 
 **poc/arbitrary-cpi/**
-- EXPLOIT: attacker substitutes a fake SPL Token program, draining the vault
-- DEFENSE: explicit program_id whitelist rejects the substitution
+- EXPLOIT: attacker substitutes a fake SPL Token program; attacker-controlled code executes inside the vault's CPI
+- DEFENSE: explicit program_id check rejects the substitution before any CPI is opened
 - POSITIVE CONTROL: the real SPL Token program succeeds
 
 ## Quickstart
@@ -103,22 +103,28 @@ The compiled programs and their keypairs are committed, so the PoCs run with Nod
 cd poc/return-data-spoofing
 npm install
 npm test
-# Expected output:
-#   [EXPLOIT]          - victim adopted spoofed price
-#   [DEFENSE]          - rejected with UntrustedProducer
-#   [POSITIVE CONTROL] - accepted real oracle data
 ```
+
+3 tests run, 3 pass:
+- EXPLOIT: "vulnerable consumer trusts spoofed return data" — tx succeeds, consumer
+  adopts attacker-set price 1 (spoofed value confirmed in return data)
+- DEFENSE: "fixed consumer rejects attacker oracle" — tx fails with error UntrustedProducer
+- POSITIVE CONTROL: "fixed consumer accepts legitimate oracle" — tx succeeds, consumer
+  reads real oracle price 50000
 
 ```bash
 # Arbitrary CPI PoC
 cd poc/arbitrary-cpi
 npm install
 npm test
-# Expected output:
-#   [EXPLOIT]          - attacker drained vault via fake program
-#   [DEFENSE]          - rejected with UnauthorizedProgram
-#   [POSITIVE CONTROL] - real SPL Token call succeeded
 ```
+
+3 tests run, 3 pass:
+- EXPLOIT: "vault_vulnerable accepts fake_token program substitution" — tx succeeds,
+  return data byte 0 = 1 proving fake_token (attacker program) executed
+- DEFENSE: "vault_fixed rejects fake_token program substitution" — tx fails with error
+  WrongTokenProgram
+- POSITIVE CONTROL: "vault_fixed accepts real_token" — tx succeeds, return data byte 0 = 0
 
 #### Rebuild the programs from source (optional)
 
