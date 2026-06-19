@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        scenario: [return-data-spoofing, arbitrary-cpi, account-reload]
+        scenario: [return-data-spoofing, arbitrary-cpi, account-reload, pda-cpi-signing]
     steps:
       - uses: actions/checkout@v4
 
