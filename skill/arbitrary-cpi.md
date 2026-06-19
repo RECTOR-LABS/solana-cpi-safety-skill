@@ -73,7 +73,7 @@ Grep signals for the fake-SPL variant:
 
 ```bash
 # Manual deserialization of SPL token account data without owner check
-rg -n 'TokenAccount::try_deserialize\|unpack\|from_account_info' --type rust
+rg -n 'TokenAccount::try_deserialize|unpack|from_account_info' --type rust
 
 # UncheckedAccount used where a token account is expected
 rg -n 'UncheckedAccount' --type rust
@@ -207,9 +207,11 @@ use solana_program::{
     program::invoke,
     program_error::ProgramError,
     pubkey::Pubkey,
-    spl_token,
 };
 
+// `spl_token` is the separate `spl-token` crate (add it to Cargo.toml) — it is
+// NOT re-exported by solana_program. It provides `spl_token::ID` and the
+// `spl_token::instruction` builders used below.
 // Pinned to the canonical SPL Token program id.
 const EXPECTED_TOKEN_PROGRAM: Pubkey = spl_token::ID;
 
