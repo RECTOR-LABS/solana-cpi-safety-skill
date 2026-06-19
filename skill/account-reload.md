@@ -189,7 +189,7 @@ This class is about **temporal correctness** — the caller's view of account st
 - **`arbitrary-cpi.md`** — concerns *which program* executes during the CPI. A properly identified callee can still mutate shared accounts, making reload necessary. Pinning the callee id (the control in `arbitrary-cpi.md`) does not eliminate the stale-read risk on accounts the legitimate callee modifies.
 - **`cpi-return-data-spoofing.md`** — concerns *what bytes the callee returned*. A consumer that reads stale account state after a CPI compounds any return-data risk: if the callee both mutates an account and sets return data, trusting the stale account fields (this class) or trusting the unverified return data (the spoofing class) are two separate failure modes, either of which is sufficient for exploitation.
 
-A runnable PoC demonstrating the stale-account-after-CPI class is a documented extension point (see `poc-harness.md`) and not yet shipped with this skill version.
+A runnable PoC ships in `poc/account-reload/`: a `ledger` program owns a `Vault` PDA, and a consumer CPIs `ledger.withdraw` then runs a solvency check. The LiteSVM suite proves all three cases — EXPLOIT (the vulnerable consumer checks the pre-CPI balance snapshot, so a fully drained vault passes the check), DEFENSE (the fixed consumer re-reads after the CPI — the `reload()` lesson — and rejects it with `Insolvent`), and POSITIVE CONTROL (a partial withdrawal that stays solvent is accepted). Run it with `cd poc/account-reload && npm test`.
 
 ---
 
@@ -198,4 +198,4 @@ A runnable PoC demonstrating the stale-account-after-CPI class is a documented e
 - `arbitrary-cpi.md` — pinning the program invoked during CPI; complementary to the reload discipline.
 - `cpi-return-data-spoofing.md` — authenticating the producer of CPI return data; a related post-CPI trust failure.
 - `cpi-checklist.md` — consolidated CPI-safety review checklist.
-- `poc-harness.md` — the LiteSVM harness used for PoC tests; reload PoC is a documented extension point.
+- `poc-harness.md` — the LiteSVM harness used by `poc/account-reload/` and the other PoC suites.

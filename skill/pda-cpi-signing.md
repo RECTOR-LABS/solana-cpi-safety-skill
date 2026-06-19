@@ -198,7 +198,7 @@ This class is about **signing authority integrity** — ensuring that `invoke_si
 - **`arbitrary-cpi.md`** — concerns which program is invoked; this document concerns which PDA signs for it. A program that pins its callee (the control in `arbitrary-cpi.md`) but signs with an attacker-supplied bump is still exposed: the right program executes, but with authority over the wrong PDA.
 - **`cpi-return-data-spoofing.md`** — concerns what bytes the callee returns after the CPI completes. PDA signing safety is a pre-CPI concern (authentication of the signer); return-data spoofing is a post-CPI concern (authentication of the output). They are independent failure modes but can combine: an attacker who compromises PDA signing authority can issue CPIs that write attacker-controlled data, then a return-data spoofing gap turns that data into a trusted value.
 
-A runnable PoC demonstrating non-canonical bump exploitation is a documented extension point (see `poc-harness.md`) and not yet shipped with this skill version.
+A runnable PoC ships in `poc/pda-cpi-signing/`: a vault PDA derived from `[b"vault", authority]` holds lamports, and `withdraw` signs a transfer out of it via `invoke_signed` with the canonical bump. The LiteSVM suite proves all three cases — EXPLOIT (the vulnerable program never requires `authority`, a seed of the PDA it signs for, to sign, so an attacker drains a victim's vault by passing the victim's pubkey unsigned), DEFENSE (the fixed program makes `authority` a `Signer`, rejecting the unsigned drain), and POSITIVE CONTROL (the real authority withdraws from its own vault). Run it with `cd poc/pda-cpi-signing && npm test`. The non-canonical-bump variant remains a documented extension point on top of this seed-verification PoC.
 
 ---
 
@@ -207,4 +207,4 @@ A runnable PoC demonstrating non-canonical bump exploitation is a documented ext
 - `arbitrary-cpi.md` — pinning the program invoked during CPI; complementary to PDA signing safety.
 - `cpi-return-data-spoofing.md` — authenticating return data after CPI; a related post-CPI trust failure.
 - `cpi-checklist.md` — consolidated CPI-safety review checklist.
-- `poc-harness.md` — the LiteSVM harness; PDA signing PoC is a documented extension point.
+- `poc-harness.md` — the LiteSVM harness used by `poc/pda-cpi-signing/` and the other PoC suites.

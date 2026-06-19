@@ -47,8 +47,10 @@ rules/
   rust.md                       # Rust code rule (Cursor .mdc)
 
 poc/
-  return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC
+  return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC (incl. Variant B)
   arbitrary-cpi/                # Runnable LiteSVM + TypeScript PoC
+  account-reload/               # Runnable LiteSVM + TypeScript PoC
+  pda-cpi-signing/              # Runnable LiteSVM + TypeScript PoC
 ```
 
 ### The /audit-cpi command
@@ -63,19 +65,30 @@ A dedicated sub-agent that performs systematic CPI audits. Routes to the appropr
 
 A Rust code rule in Cursor `.mdc` format (`globs:` frontmatter). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
 
-### Two runnable PoCs
+### Four runnable PoCs
 
-Each PoC has an Anchor program (attacker + victim) and a TypeScript LiteSVM test suite with three cases:
+Each PoC has Anchor programs (attacker + victim) and a TypeScript LiteSVM test suite with EXPLOIT / DEFENSE / POSITIVE CONTROL cases:
 
-**poc/return-data-spoofing/**
+**poc/return-data-spoofing/** (crown jewel; 6 cases)
 - EXPLOIT: victim adopts the spoofed price written by the attacker program
-- DEFENSE: `UntrustedProducer` error raised when program_id check fails
+- DEFENSE: `UntrustedProducer` error raised when the producer check fails
 - POSITIVE CONTROL: accepts return data from the real oracle program
+- Variant B (deeper-stack leak): a benign relay surfaces a deeper program's return data — EXPLOIT adopts a deep attacker's spoof, DEFENSE rejects it via the producer check, POSITIVE accepts the real oracle
 
 **poc/arbitrary-cpi/**
 - EXPLOIT: attacker substitutes a fake SPL Token program; attacker-controlled code executes inside the vault's CPI
 - DEFENSE: explicit program_id check rejects the substitution before any CPI is opened
 - POSITIVE CONTROL: the real SPL Token program succeeds
+
+**poc/account-reload/**
+- EXPLOIT: a vulnerable consumer checks a pre-CPI balance snapshot, so a vault drained by the CPI passes a solvency check
+- DEFENSE: the fixed consumer re-reads after the CPI (the `reload()` lesson) and rejects the drained vault
+- POSITIVE CONTROL: a partial withdrawal that stays solvent is accepted
+
+**poc/pda-cpi-signing/**
+- EXPLOIT: a vault PDA signs (`invoke_signed`) with seeds `[b"vault", authority]`, but the authority is never required to sign — an attacker drains a victim's vault by passing the victim's pubkey unsigned
+- DEFENSE: the fixed program requires the authority to sign, rejecting the unsigned drain
+- POSITIVE CONTROL: the real authority withdraws from its own vault
 
 ## Quickstart
 
@@ -105,12 +118,14 @@ npm install
 npm test
 ```
 
-3 tests run, 3 pass:
+6 tests run, 6 pass (Variant A + Variant B deeper-stack):
 - EXPLOIT: "vulnerable consumer trusts spoofed return data" — tx succeeds, consumer
   adopts attacker-set price 1 (spoofed value confirmed in return data)
 - DEFENSE: "fixed consumer rejects attacker oracle" — tx fails with error UntrustedProducer
 - POSITIVE CONTROL: "fixed consumer accepts legitimate oracle" — tx succeeds, consumer
   reads real oracle price 50000
+- Variant B (deeper-stack leak): EXPLOIT adopts a deep attacker's spoof through a benign
+  relay; DEFENSE rejects it via the producer check; POSITIVE accepts the real oracle
 
 ```bash
 # Arbitrary CPI PoC
@@ -125,6 +140,15 @@ npm test
 - DEFENSE: "vault_fixed rejects fake_token program substitution" — tx fails with error
   WrongTokenProgram
 - POSITIVE CONTROL: "vault_fixed accepts real_token" — tx succeeds, return data byte 0 = 0
+
+```bash
+# account-reload (stale-account-after-CPI) PoC
+cd poc/account-reload && npm install && npm test
+# pda-cpi-signing (invoke_signed) PoC
+cd poc/pda-cpi-signing && npm install && npm test
+```
+
+Both run the same EXPLOIT / DEFENSE / POSITIVE CONTROL shape (3 tests each).
 
 #### Rebuild the programs from source (optional)
 
@@ -206,10 +230,16 @@ solana-cpi-safety-skill/
 
   poc/
     return-data-spoofing/
-      programs/               # Anchor victim + attacker programs
-      tests/                  # LiteSVM TypeScript test suite
+      programs/               # Anchor victim + attacker + relay programs
+      tests/                  # LiteSVM TypeScript test suite (Variant A + B)
     arbitrary-cpi/
       programs/               # Anchor victim + attacker programs
+      tests/                  # LiteSVM TypeScript test suite
+    account-reload/
+      programs/               # Anchor ledger + consumer programs
+      tests/                  # LiteSVM TypeScript test suite
+    pda-cpi-signing/
+      programs/               # Anchor vault programs
       tests/                  # LiteSVM TypeScript test suite
 ```
 

@@ -9,7 +9,7 @@ A Claude Code skill that detects and prevents four Solana CPI vulnerability clas
 3. **Stale account after CPI** — reading account state a callee mutated without reloading.
 4. **PDA CPI signing** — non-canonical bumps or leaked signer seeds in `invoke_signed`.
 
-Covers Anchor and native/Pinocchio patterns. Includes two runnable PoCs (LiteSVM + TypeScript), a `/audit-cpi` command, a `cpi-auditor` agent, and a Rust code rule.
+Covers Anchor and native/Pinocchio patterns. Includes four runnable PoCs (LiteSVM + TypeScript), a `/audit-cpi` command, a `cpi-auditor` agent, and a Rust code rule.
 
 ## Toolchain pins
 
@@ -28,10 +28,10 @@ The `litesvm` npm package version 1.1.0 requires `@solana/kit` (not the older `@
 
 ## Running the PoCs
 
-Both PoCs follow the same flow: build the Anchor programs first, then run the TypeScript tests against the compiled BPF binaries via LiteSVM.
+All four PoCs follow the same flow: build the Anchor programs first, then run the TypeScript tests against the compiled BPF binaries via LiteSVM.
 
 ```bash
-# return-data spoofing PoC
+# return-data spoofing PoC (includes the Variant B deeper-stack trio)
 cd poc/return-data-spoofing
 anchor build
 npm install
@@ -42,9 +42,21 @@ cd poc/arbitrary-cpi
 anchor build
 npm install
 npm test
+
+# account-reload (stale-account-after-CPI) PoC
+cd poc/account-reload
+anchor build
+npm install
+npm test
+
+# pda-cpi-signing (invoke_signed) PoC
+cd poc/pda-cpi-signing
+anchor build
+npm install
+npm test
 ```
 
-Each test suite produces three cases: EXPLOIT (lands before fix), DEFENSE (rejects after fix), POSITIVE CONTROL (legitimate call succeeds).
+Each scenario follows the EXPLOIT (lands before fix), DEFENSE (rejects after fix), POSITIVE CONTROL (legitimate call succeeds) shape; the return-data PoC adds a second Variant-B trio.
 
 ## Claim accuracy — strict rules for contributors
 
@@ -96,4 +108,6 @@ commands/audit-cpi.md
 rules/rust.md
 poc/return-data-spoofing/
 poc/arbitrary-cpi/
+poc/account-reload/
+poc/pda-cpi-signing/
 ```
