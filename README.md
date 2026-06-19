@@ -99,6 +99,7 @@ For custom install location (project-local or custom path):
 ```bash
 # Return-data spoofing PoC
 cd poc/return-data-spoofing
+anchor build
 npm install
 npm test
 # Expected output:
@@ -110,6 +111,7 @@ npm test
 ```bash
 # Arbitrary CPI PoC
 cd poc/arbitrary-cpi
+anchor build
 npm install
 npm test
 # Expected output:

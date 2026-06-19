@@ -89,9 +89,6 @@ for dir in skill commands agents rules; do
     fi
 done
 
-# Create target
-mkdir -p "$INSTALL_PATH"
-
 # [1/2] Remove existing installation
 echo "[1/2] Preparing install path..."
 if [ -d "$INSTALL_PATH" ] && [ "$(ls -A "$INSTALL_PATH" 2>/dev/null)" ]; then
@@ -99,6 +96,9 @@ if [ -d "$INSTALL_PATH" ] && [ "$(ls -A "$INSTALL_PATH" 2>/dev/null)" ]; then
     rm -rf "$INSTALL_PATH"
     mkdir -p "$INSTALL_PATH"
 fi
+
+# Create target (after cleanup)
+mkdir -p "$INSTALL_PATH"
 echo "  [OK] $INSTALL_PATH ready"
 
 # [2/2] Copy skill bundle
