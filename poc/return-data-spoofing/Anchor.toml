@@ -7,6 +7,9 @@ skip-lint = false
 
 [programs.localnet]
 attacker_oracle = "2HJ3p8ACR9AJuFqtXrbHGrt6PLTo1RuRj4HSXg4Tx3fP"
+consumer_fixed = "AVJRKqzgt7msS6a9zNGxv2iNHfbfHW8wnoEYABQkNfy1"
+consumer_vulnerable = "3kcfr8RXrCSP11tHyhm9j6WRBP3vTRBgZLDLWj5LocYb"
+price_oracle = "CyhyMsDRy72WbGMsfrYqzoPWX1UT7RQQ5PBqE65sN4Q7"
 
 [provider]
 cluster = "localnet"
@@ -14,5 +17,3 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "node --import tsx --test --test-concurrency=1 'tests/**/*.test.ts'"
-
-[hooks]
