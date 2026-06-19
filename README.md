@@ -44,7 +44,7 @@ commands/
   audit-cpi.md                  # /audit-cpi command
 
 rules/
-  rust.md                       # Auto-loading Rust code rule
+  rust.md                       # Rust code rule (Cursor .mdc)
 
 poc/
   return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC
@@ -61,7 +61,7 @@ A dedicated sub-agent that performs systematic CPI audits. Routes to the appropr
 
 ### The rust.md rule
 
-An auto-loading Cursor/Claude Code rule that fires on every Rust file edit and checks for CPI safety invariants before accepting the change.
+A Rust code rule in Cursor `.mdc` format (`globs:` frontmatter). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
 
 ### Two runnable PoCs
 
