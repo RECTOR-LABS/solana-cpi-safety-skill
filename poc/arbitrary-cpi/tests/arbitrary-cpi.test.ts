@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { generateKeyPairSigner, getAddressEncoder, type Address } from "@solana/kit";
+import { generateKeyPairSigner, type Address } from "@solana/kit";
 import {
   LiteSVM,
   TransactionMetadata,
@@ -50,10 +50,6 @@ function withdrawIx(vault: Address, tokenProgram: Address, payerAddress: Address
     ],
     data: anchorDiscriminator("withdraw"),
   };
-}
-
-function addressBytes(a: string): Uint8Array {
-  return new Uint8Array(getAddressEncoder().encode(a as never));
 }
 
 test("EXPLOIT: vault_vulnerable accepts fake_token program substitution", async () => {
