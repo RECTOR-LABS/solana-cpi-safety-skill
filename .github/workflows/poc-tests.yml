@@ -7,7 +7,10 @@
 
 name: PoC tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
   lint:
@@ -35,6 +38,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: poc/${{ matrix.scenario }}/package-lock.json
 
       - name: Install dependencies
         working-directory: poc/${{ matrix.scenario }}
