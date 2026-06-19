@@ -67,7 +67,7 @@ CI lint greps all Markdown files for inflated numbers and severities. Do not com
 ## Style rules for contributors
 
 - No emojis anywhere (README, skill Markdown, scripts, comments).
-- No box-drawing characters in shell scripts (no `─`-range glyphs, no `╔`, `║`, `╚`, etc.).
+- No box-drawing or Unicode line-art glyphs in shell scripts; use plain ASCII only (`=`, `-`, `*`, `[OK]`, `[1/2]`).
 - No religious wording of any kind.
 - ASCII-only for all installer output (`[OK]`, `[1/2]`, `===`, `*` are fine).
 - Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`.
