@@ -12,11 +12,12 @@ pub const EXPECTED_ORACLE: Pubkey = pubkey!("CyhyMsDRy72WbGMsfrYqzoPWX1UT7RQQ5PB
 pub mod consumer_fixed {
     use super::*;
 
-    /// FIXED: CPIs the supplied oracle program using the `quote` interface,
-    /// then verifies BOTH that (a) the return-data producer matches EXPECTED_ORACLE
-    /// and (b) the oracle_program account itself is EXPECTED_ORACLE before trusting
-    /// the price. Either check alone would be bypassable; together they close
-    /// the return-data spoofing attack surface.
+    /// FIXED: CPIs the supplied oracle program using the `quote` interface, then
+    /// verifies the return-data producer matches EXPECTED_ORACLE before trusting the
+    /// price. That producer check is the load-bearing defense — the runtime stamps the
+    /// producer id and the caller cannot forge it, so a substituted or stale value is
+    /// caught. The second check, on the oracle_program account, is defense-in-depth
+    /// (the arbitrary-CPI control), not what closes the spoofing hole.
     pub fn consume_price(ctx: Context<ConsumePrice>) -> Result<()> {
         let ix = Instruction {
             program_id: ctx.accounts.oracle_program.key(),
@@ -27,11 +28,15 @@ pub mod consumer_fixed {
 
         let (producer, bytes) = get_return_data().ok_or(error!(Err::NoReturnData))?;
 
-        // FIX: confirm the runtime-reported producer is the trusted oracle.
+        // LOAD-BEARING FIX: confirm the runtime-reported producer is the trusted
+        // oracle. This is the check that actually closes return-data spoofing — the
+        // producer id is stamped by the runtime and cannot be forged by the caller,
+        // so a substituted or stale value fails here.
         require_keys_eq!(producer, EXPECTED_ORACLE, Err::UntrustedProducer);
-        // FIX: also confirm the account passed by the caller is the trusted oracle
-        // (guards against a scenario where a rogue intermediate program re-sets
-        // return data with the correct producer id but different account).
+        // DEFENSE-IN-DEPTH: also confirm the account the caller passed is the trusted
+        // oracle, so we refuse to even CPI an unexpected program (fail fast). This is
+        // the arbitrary-CPI control (see skill/arbitrary-cpi.md) — complementary to,
+        // not a substitute for, the producer check above.
         require_keys_eq!(
             ctx.accounts.oracle_program.key(),
             EXPECTED_ORACLE,
