@@ -89,6 +89,14 @@ test("DEFENSE: fixed consumer rejects attacker oracle", async () => {
     /UntrustedProducer/,
     `expected UntrustedProducer in logs, got:\n${logs}`,
   );
+  // Isolation: the producer check must be what rejects the spoof, not the
+  // defense-in-depth callee pin. The producer check runs first, so a regression
+  // that removed it would surface UntrustedCallee here and fail this assertion.
+  assert.doesNotMatch(
+    logs,
+    /UntrustedCallee/,
+    `expected the producer check (not the callee pin) to fire; got:\n${logs}`,
+  );
 });
 
 test("POSITIVE CONTROL: fixed consumer accepts legitimate oracle", async () => {

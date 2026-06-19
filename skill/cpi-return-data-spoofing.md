@@ -99,13 +99,14 @@ let (producer, bytes) = get_return_data().ok_or(error!(Err::NoReturnData))?;
 // so a substituted or stale value fails here.
 require_keys_eq!(producer, EXPECTED_ORACLE, Err::UntrustedProducer);
 // DEFENSE-IN-DEPTH: also confirm the account the caller passed is the trusted
-// oracle, so we refuse to even CPI an unexpected program (fail fast). This is
-// the arbitrary-CPI control (see skill/arbitrary-cpi.md) — complementary to,
-// not a substitute for, the producer check above.
+// oracle. A distinct error (UntrustedCallee) keeps this separable from the
+// producer check above, so the DEFENSE test can prove the producer check is
+// what rejects a spoofed value. This is the arbitrary-CPI control (see
+// arbitrary-cpi.md); for true fail-fast, pin the callee before `invoke`.
 require_keys_eq!(
     ctx.accounts.oracle_program.key(),
     EXPECTED_ORACLE,
-    Err::UntrustedProducer
+    Err::UntrustedCallee
 );
 
 let price = u64::from_le_bytes(
