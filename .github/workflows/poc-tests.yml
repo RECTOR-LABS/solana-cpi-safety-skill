@@ -1,0 +1,31 @@
+# The compiled programs (.so) and keypairs for both PoC scenarios are committed to the
+# repository under poc/<scenario>/target/deploy/. CI therefore needs only Node — no Rust,
+# Solana CLI, or Anchor toolchain is required. The tests load the .so files directly via
+# LiteSVM. To rebuild the programs from source, run `anchor build` inside a
+# poc/<scenario>/ directory with Anchor 1.0.2 and the Solana toolchain installed; the
+# committed keypairs keep the program ids stable across rebuilds.
+
+name: PoC tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scenario: [return-data-spoofing, arbitrary-cpi]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: poc/${{ matrix.scenario }}
+        run: npm ci
+
+      - name: Run PoC tests
+        working-directory: poc/${{ matrix.scenario }}
+        run: npm test
