@@ -31,7 +31,7 @@ Plus:
 
 ### Results (per axis)
 - Usefulness: HIGH — CPI bugs are top-tier severe; every Anchor dev doing cross-program calls benefits.
-- Novelty: HIGH — grep over the kit + all 18 ext submodules for `return-data` / `get_return_data` / `set_return_data` returned ZERO hits this session.
+- Novelty: HIGH — no skill in the kit covers return-data spoofing as a security class. (Re-grep 2026-06-19, full --recurse-submodules, 19 ext submodules: only `qedgen` codegen mechanically emits `get_return_data` — and emits the vulnerable producer-discarding pattern; it is not security coverage. `return-data spoof` = 0 hits. See docs/superpowers/submission-answers.md Q2.)
 - Quality: HIGH — anchored on a real, upstream-fixed bug; current to Anchor/Agave 2026; ships with a runnable PoC.
 - Fit: HIGH — clean routing-hub shape; slots beside trailofbits without overlap.
 - Builder-fit: MAXIMAL (the submitter's flagship finding is exactly this class).
@@ -42,7 +42,7 @@ Closest existing coverage and how this differs:
 - Solana Foundation `solana-dev-skill` `security.md` (562 lines) — covers arbitrary-CPI program-substitution ONLY, not `get_return_data` trust. This skill owns the return-data class it omits.
 - Trail of Bits `skills` — chain-agnostic / EVM-leaning; no Solana CPI/return-data semantics.
 - The taken `solana-auditor-skill` seed — report-lifecycle / formal-verification, not a CPI exploit-class skill.
-- Verification: grep across kit local + ext for return-data primitives = 0 matches (2026-06-19).
+- Verification: full --recurse-submodules grep (2026-06-19, 19 submodules): 0 hits for "return-data spoof"; the only `get_return_data` hits are qedgen's codegen (mechanical emit, not security coverage). Novelty of the security class holds. RE-GREP morning of submission (kit is actively maintained — "solana-new" submodule already appeared).
 
 ## Founder-market-fit (answers the bounty's Q3: "why you")
 Found this exact bug class: Anchor CPI return-data spoofing, CVSS 7.5, fixed upstream — placing 1st of 116 across a 14-protocol audit contest. Proof links to assemble at submission: audit-contest result/profile, the finding + upstream fix (if public), GitHub (rz1989s), Superteam Earn profile (rz1989). State credentials accurately only — never the disproven "125-vuln / CVSS-10" claim.
