@@ -1,0 +1,15 @@
+{
+  "name": "account-reload-poc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test --test-concurrency=1 'tests/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "litesvm": "1.1.0",
+    "@solana/kit": "6.10.0",
+    "tsx": "4.22.4",
+    "typescript": "5.9.3",
+    "@types/node": "22.19.19"
+  }
+}

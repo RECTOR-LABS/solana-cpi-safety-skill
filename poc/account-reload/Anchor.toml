@@ -1,0 +1,18 @@
+[toolchain]
+anchor_version = "1.0.2"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+ledger = "4pyR4Qz6qG5bssfvxpuVHNH9cXEpzaWfVi9itRf4N75W"
+consumer_vulnerable = "51YsAXYZDms5gXcKYLvR2zyKU7qPZY58uupwJcyPF2TE"
+consumer_fixed = "B7iVMsi2xxwdAhuR7GVLJgsrPwdUtmf15cTuxHLJkPSY"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "node --import tsx --test --test-concurrency=1 'tests/**/*.test.ts'"
