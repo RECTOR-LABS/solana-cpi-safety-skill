@@ -46,6 +46,24 @@ jobs:
         working-directory: poc/${{ matrix.scenario }}
         run: npm ci
 
+      # litesvm's native addon can intermittently abort with a C++ std::bad_alloc
+      # (SIGABRT) under runner memory pressure. That is a process-level crash, not a
+      # test assertion, so it cannot be caught in-test -- only by re-running the
+      # process. Measured at ~2/12 runs, concentrated in the heaviest scenario. Retry
+      # the whole run up to 3 times; a genuine regression fails all three attempts
+      # deterministically, so this masks only the transient native crash.
       - name: Run PoC tests
         working-directory: poc/${{ matrix.scenario }}
-        run: npm test
+        run: |
+          for attempt in 1 2 3; do
+            echo "::group::PoC tests (attempt ${attempt}/3)"
+            if npm test; then
+              echo "::endgroup::"
+              echo "PoC tests passed on attempt ${attempt}"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::attempt ${attempt} failed (likely transient litesvm std::bad_alloc); retrying"
+          done
+          echo "::error::PoC tests failed after 3 attempts"
+          exit 1
