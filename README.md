@@ -89,6 +89,7 @@ Each PoC has Anchor programs (attacker + victim) and a TypeScript LiteSVM test s
 - EXPLOIT: a vault PDA signs (`invoke_signed`) with seeds `[b"vault", authority]`, but the authority is never required to sign — an attacker drains a victim's vault by passing the victim's pubkey unsigned
 - DEFENSE: the fixed program requires the authority to sign, rejecting the unsigned drain
 - POSITIVE CONTROL: the real authority withdraws from its own vault
+- A second test file (`non-canonical-bump.test.ts`) covers the non-canonical-bump facet: a vulnerable program creates a one-per-user registry PDA via `invoke_signed` with a caller-supplied bump, so an attacker registers the same user twice (canonical then a non-canonical bump) to mint duplicate accounts; the fixed program pins the canonical bump via `find_program_address`
 
 ## Quickstart
 
