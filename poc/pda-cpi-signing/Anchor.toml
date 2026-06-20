@@ -8,6 +8,8 @@ skip-lint = false
 [programs.localnet]
 vault_vulnerable = "HjHLkyZVc3x64fEeFBvg7KktaCLttRzxo8St9GTAezhZ"
 vault_fixed = "8dJNdscBqPXKbqoAamLHDsKqpsDip8PkAcVsGhvGFBhh"
+registry_vulnerable = "9H3yopRSRF26RFoupWbpFXAuhcSktmE1jKJXbciB7zEu"
+registry_fixed = "EmpKLgcp3N1ijKd4hcuS2NnqNhNkymRacYvQMd2aGkRK"
 
 [provider]
 cluster = "localnet"
