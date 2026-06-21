@@ -48,6 +48,7 @@ rules/
 
 poc/
   return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC (incl. Variant B)
+  pinocchio-return-data/        # Runnable LiteSVM PoC (Pinocchio crown-jewel variant)
   arbitrary-cpi/                # Runnable LiteSVM + TypeScript PoC
   account-reload/               # Runnable LiteSVM + TypeScript PoC
   pda-cpi-signing/              # Runnable LiteSVM + TypeScript PoC
@@ -65,15 +66,20 @@ A dedicated sub-agent that performs systematic CPI audits. Routes to the appropr
 
 A Rust code rule in Cursor `.mdc` format (`globs:` frontmatter). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
 
-### Four runnable PoCs
+### Runnable PoCs
 
-Each PoC has Anchor programs (attacker + victim) and a TypeScript LiteSVM test suite with EXPLOIT / DEFENSE / POSITIVE CONTROL cases:
+Five runnable PoCs cover the four vulnerability classes — the crown-jewel class (return-data spoofing) ships both an Anchor and a Pinocchio proof. Each PoC pairs on-chain programs (attacker + victim) with a TypeScript LiteSVM test suite running EXPLOIT / DEFENSE / POSITIVE CONTROL cases. Programs are Anchor except where noted:
 
 **poc/return-data-spoofing/** (crown jewel; 6 cases)
 - EXPLOIT: victim adopts the spoofed price written by the attacker program
 - DEFENSE: `UntrustedProducer` error raised when the producer check fails
 - POSITIVE CONTROL: accepts return data from the real oracle program
 - Variant B (deeper-stack leak): a benign relay surfaces a deeper program's return data — EXPLOIT adopts a deep attacker's spoof, DEFENSE rejects it via the producer check, POSITIVE accepts the real oracle
+
+**poc/pinocchio-return-data/** (crown jewel, Pinocchio; 3 cases)
+- The same exploit and fix as the Anchor return-data PoC, written against raw Pinocchio (`pinocchio::cpi`, `AccountView`, `Address`) and built with `cargo-build-sbf`
+- One `consumer` program selects the unchecked vs checked path via a one-byte instruction discriminator (0 = vulnerable, 1 = fixed)
+- EXPLOIT adopts the attacker's spoofed `1`; DEFENSE rejects with `UntrustedProducer`; POSITIVE accepts the trusted oracle's `50_000`
 
 **poc/arbitrary-cpi/**
 - EXPLOIT: attacker substitutes a fake SPL Token program; attacker-controlled code executes inside the vault's CPI
@@ -147,13 +153,15 @@ npm test
 cd poc/account-reload && npm install && npm test
 # pda-cpi-signing (invoke_signed) PoC
 cd poc/pda-cpi-signing && npm install && npm test
+# pinocchio-return-data (Pinocchio crown-jewel variant) PoC
+cd poc/pinocchio-return-data && npm install && npm test
 ```
 
-Both run the same EXPLOIT / DEFENSE / POSITIVE CONTROL shape (3 tests each).
+These run the same EXPLOIT / DEFENSE / POSITIVE CONTROL shape (3 tests each).
 
 #### Rebuild the programs from source (optional)
 
-With Anchor 1.0.2 and the Solana toolchain installed, run `anchor build` inside a `poc/<scenario>/` directory. The committed program keypairs keep the program ids stable across rebuilds.
+With Anchor 1.0.2 and the Solana toolchain installed, run `anchor build` inside an Anchor `poc/<scenario>/` directory. The `pinocchio-return-data` PoC is built with `cargo-build-sbf` instead (see CLAUDE.md for the toolchain notes). The committed program keypairs keep the program ids stable across rebuilds.
 
 ### Use in Claude Code
 
@@ -233,6 +241,9 @@ solana-cpi-safety-skill/
     return-data-spoofing/
       programs/               # Anchor victim + attacker + relay programs
       tests/                  # LiteSVM TypeScript test suite (Variant A + B)
+    pinocchio-return-data/
+      programs/               # Pinocchio oracle + attacker + consumer programs
+      tests/                  # LiteSVM TypeScript test suite
     arbitrary-cpi/
       programs/               # Anchor victim + attacker programs
       tests/                  # LiteSVM TypeScript test suite
