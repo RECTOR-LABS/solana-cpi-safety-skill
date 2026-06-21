@@ -20,23 +20,43 @@ Installs the skill, the /audit-cpi command, and the cpi-auditor agent into
 your Claude Code config directory.
 
 Options:
-  -p, --project   Install into ./.claude (this project) instead of ~/.claude
-  -y, --yes       Skip the confirmation prompt
-  -h, --help      Show this help
+  -p, --project       Install into ./.claude (this project) instead of ~/.claude
+  -t, --target <dir>  Install into <dir> as the config base: skill -> <dir>/skills/...,
+                      command -> <dir>/commands/, agent -> <dir>/agents/. Use for a
+                      custom CLAUDE_CONFIG_DIR or a shared skills directory. Cannot be
+                      combined with --project.
+  -y, --yes           Skip the confirmation prompt
+  -h, --help          Show this help
 
 Default scope: ~/.claude (global - available in all your projects).`;
 
 function parseArgs(argv) {
-  const opts = { project: false, yes: false, help: false };
+  // --help always wins: never let another flag's parsing (e.g. --target's missing-value
+  // check) pre-empt printing usage.
+  if (argv.includes("--help") || argv.includes("-h")) {
+    return { project: false, yes: false, help: true, target: null };
+  }
+  const opts = { project: false, yes: false, help: false, target: null };
   const unknown = [];
-  for (const a of argv) {
+  const TARGET_USAGE = "--target requires a directory: npx @rector-labs/solana-cpi-safety-skill --target <dir>";
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
     if (a === "--project" || a === "-p") opts.project = true;
     else if (a === "--yes" || a === "-y") opts.yes = true;
-    else if (a === "--help" || a === "-h") opts.help = true;
-    else unknown.push(a);
+    else if (a === "--target" || a === "-t" || a.startsWith("--target=")) {
+      // Accept both `--target <dir>` / `-t <dir>` and `--target=<dir>`; one guard for all.
+      const val = a.startsWith("--target=") ? a.slice("--target=".length) : argv[++i];
+      if (val === undefined || val === "" || val.startsWith("-")) { console.error(TARGET_USAGE); process.exit(1); }
+      opts.target = val;
+    } else unknown.push(a);
   }
-  // --help wins even when an unknown flag precedes it; otherwise reject the first unknown.
-  if (!opts.help && unknown.length) { console.error(`Unknown option: ${unknown[0]}`); process.exit(1); }
+  // Reject the first unrecognized option (--help already short-circuited above).
+  if (unknown.length) { console.error(`Unknown option: ${unknown[0]}`); process.exit(1); }
+  // --target and --project both choose the install base; refuse the ambiguous combination.
+  if (opts.target !== null && opts.project) {
+    console.error("--target and --project cannot be combined; choose one install base.");
+    process.exit(1);
+  }
   return opts;
 }
 
@@ -74,7 +94,11 @@ async function main() {
   if (opts.help) { console.log(HELP); return; }
   validateSource();
 
-  const base = opts.project ? resolve(process.cwd(), ".claude") : join(homedir(), ".claude");
+  const base = opts.target
+    ? resolve(opts.target)
+    : opts.project
+      ? resolve(process.cwd(), ".claude")
+      : join(homedir(), ".claude");
   const skillDest = join(base, "skills", SKILL_NAME);
 
   console.log("===================================================================");

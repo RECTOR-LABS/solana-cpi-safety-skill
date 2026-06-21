@@ -38,7 +38,7 @@ skills/
     poc-harness.md              # PoC test harness guide
     cpi-checklist.md            # Pre-audit CPI checklist
     rules/
-      rust.md                   # Rust code rule (Cursor .mdc)
+      rust.md                   # Rust code rule (Cursor-style globs frontmatter)
 
 agents/
   cpi-auditor.md                # Autonomous CPI audit agent
@@ -64,7 +64,7 @@ A dedicated sub-agent that performs systematic CPI audits. Routes to the appropr
 
 ### The rust.md rule
 
-A Rust code rule in Cursor `.mdc` format (`globs:` frontmatter). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
+A Rust code rule with Cursor-style `globs:` frontmatter (shipped as `rust.md` so it renders on GitHub). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
 
 ### Runnable PoCs
 
@@ -121,14 +121,17 @@ As a native Claude Code plugin (full bundle), via the RECTOR-LABS marketplace:
 /plugin install solana-cpi-safety@rector-labs
 ```
 
-From a clone (no Node required):
+From a clone (runs the same installer locally):
 
 ```bash
 git clone https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git
-cd solana-cpi-safety-skill && ./install.sh   # or ./install-custom.sh
+cd solana-cpi-safety-skill
+node bin/cli.mjs                      # global (~/.claude)
+# project-local: node bin/cli.mjs --project              # ./.claude
+# custom base:   node bin/cli.mjs --target <dir>         # <dir> is a config base: installs <dir>/skills, <dir>/commands, <dir>/agents
 ```
 
-Then restart Claude Code. Note: installed as a plugin the command is namespaced `/solana-cpi-safety:audit-cpi`; via npx or `install.sh` it is `/audit-cpi`.
+Then restart Claude Code. Note: installed as a plugin the command is namespaced `/solana-cpi-safety:audit-cpi`; via npx or the local installer it is `/audit-cpi`.
 
 ### Run a PoC
 
@@ -232,10 +235,8 @@ solana-cpi-safety-skill/
   README.md                   # This file
   CLAUDE.md                   # Contributor guidance
   LICENSE                     # MIT
-  install.sh                  # Standard installer
-  install-custom.sh           # Custom-path installer
   package.json                # npm package (@rector-labs/solana-cpi-safety-skill)
-  bin/cli.mjs                 # Zero-dependency Node installer (npx)
+  bin/cli.mjs                 # Zero-dependency Node installer (npx and `node bin/cli.mjs`)
   test/                       # node:test suites (installer + manifest)
 
   .claude-plugin/
