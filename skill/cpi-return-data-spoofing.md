@@ -178,7 +178,19 @@ fn read_trusted_price() -> Result<u64, ProgramError> {
 
 The `if producer != EXPECTED_ORACLE { return Err(...) }` is the exact native counterpart of Anchor's `require_keys_eq!(producer, EXPECTED_ORACLE, Err::UntrustedProducer)`. As with Anchor, **also** pin the program id you pass to the syscall that performs the `invoke` (the arbitrary-CPI control in `arbitrary-cpi.md`) — complementary defense-in-depth, not a replacement for the producer check.
 
-A pure Pinocchio program calls the same syscall; in a Pinocchio project, use the Pinocchio crate's return-data accessor or call the `sol_get_return_data` syscall directly — the pattern (read the producer `Pubkey` and data bytes, verify the producer) is identical to the native example above. If you use a thin wrapper instead of `solana_program::program::get_return_data`, decode the producer `Pubkey` and the data bytes returned by the syscall and apply the identical `!=` comparison. The trust boundary never moves: authenticate the producer, then read the bytes.
+In a pure **Pinocchio** program the accessor is `pinocchio::cpi::get_return_data() -> Option<ReturnData>` (enable the crate's `cpi` feature). Read `ReturnData::program_id()` (a `&pinocchio::Address`) and `ReturnData::as_slice()`, then apply the identical producer comparison before parsing the bytes:
+
+```rust
+// Pinocchio: pinocchio = { version = "0.10", features = ["cpi"] }
+let return_data = pinocchio::cpi::get_return_data().ok_or(ProgramError::Custom(ERR_NO_RETURN_DATA))?;
+// LOAD-BEARING: the runtime stamps the producer; the caller cannot forge it.
+if return_data.program_id() != &TRUSTED_ORACLE {
+    return Err(ProgramError::Custom(ERR_UNTRUSTED_PRODUCER));
+}
+let price = u64::from_le_bytes(return_data.as_slice().get(..8).ok_or(/* ... */)?.try_into()?);
+```
+
+There is no separate mechanism and no separate trust model — the trust boundary never moves: authenticate the producer, then read the bytes. A runnable Pinocchio version of this exact exploit and fix lives in `poc/pinocchio-return-data/` (see section 6).
 
 ---
 
@@ -201,6 +213,16 @@ The three tests (`tests/return-data-spoofing.test.ts`):
 - **POSITIVE CONTROL — `fixed consumer accepts legitimate oracle`.** `consumer_fixed` invoked with the honest `price_oracle`. The transaction **succeeds** and emits `50_000n`. This proves the fix is not a blunt "reject everything" — it accepts the genuine producer and adopts the real price, so the producer check has no false positives on the legitimate path.
 
 Read together, the three tests are the whole argument: the bug is real (EXPLOIT lands), the producer check stops it (DEFENSE rejects with `UntrustedProducer`), and the check does not break legitimate use (POSITIVE CONTROL still quotes `50_000`). The honest oracle's `50_000` and the attacker's `1` are the two needles; the producer id is the only thread that tells them apart.
+
+### Pinocchio proof
+
+`poc/pinocchio-return-data/` is the same exploit and fix written against raw Pinocchio (`pinocchio::cpi::{invoke, get_return_data, set_return_data}`, `AccountView`, `Address`) and built with `cargo-build-sbf` rather than Anchor. A single `consumer` program exposes both paths via a one-byte instruction discriminator — byte `0` is the unchecked (vulnerable) path, byte `1` adds the producer check — so the only difference under test is the `if return_data.program_id() != &TRUSTED_ORACLE` guard.
+
+```bash
+cd poc/pinocchio-return-data && npm test
+```
+
+Its three tests mirror the Anchor proof: EXPLOIT (byte `0` + `attacker_oracle`) adopts the spoofed `1`; DEFENSE (byte `1` + `attacker_oracle`) fails with `UntrustedProducer`; POSITIVE CONTROL (byte `1` + the trusted `oracle`) adopts `50_000`. The defense is framework-independent: the runtime-stamped producer id is the load-bearing authentication in native, Anchor, and Pinocchio alike.
 
 ---
 

@@ -9,7 +9,7 @@ A Claude Code skill that detects and prevents four Solana CPI vulnerability clas
 3. **Stale account after CPI** — reading account state a callee mutated without reloading.
 4. **PDA CPI signing** — non-canonical bumps or leaked signer seeds in `invoke_signed`.
 
-Covers Anchor and native/Pinocchio patterns. Includes four runnable PoCs (LiteSVM + TypeScript), a `/audit-cpi` command, a `cpi-auditor` agent, and a Rust code rule.
+Covers Anchor and native/Pinocchio patterns. Includes five runnable PoCs (LiteSVM + TypeScript) across the four classes — the crown-jewel class ships both an Anchor and a Pinocchio proof — plus a `/audit-cpi` command, a `cpi-auditor` agent, and a Rust code rule.
 
 ## Toolchain pins
 
@@ -28,7 +28,7 @@ The `litesvm` npm package version 1.1.0 requires `@solana/kit` (not the older `@
 
 ## Running the PoCs
 
-All four PoCs follow the same flow: build the Anchor programs first, then run the TypeScript tests against the compiled BPF binaries via LiteSVM.
+The four Anchor PoCs follow the same flow: build the Anchor programs first, then run the TypeScript tests against the compiled BPF binaries via LiteSVM. The fifth PoC (`pinocchio-return-data`) is a raw Pinocchio program built with `cargo-build-sbf` instead of Anchor — see "Pinocchio PoC toolchain" below.
 
 ```bash
 # return-data spoofing PoC (includes the Variant B deeper-stack trio)
@@ -54,9 +54,24 @@ cd poc/pda-cpi-signing
 anchor build
 npm install
 npm test
+
+# pinocchio-return-data PoC (Pinocchio crown-jewel variant; cargo-build-sbf, NOT anchor)
+cd poc/pinocchio-return-data
+cargo-build-sbf
+npm install
+npm test
 ```
 
 Each scenario follows the EXPLOIT (lands before fix), DEFENSE (rejects after fix), POSITIVE CONTROL (legitimate call succeeds) shape; the return-data PoC adds a second Variant-B trio.
+
+## Pinocchio PoC toolchain
+
+`poc/pinocchio-return-data/` is built with `cargo-build-sbf` (Agave platform-tools), not Anchor. Two pins matter and are captured in the committed lockfile:
+
+- **rustc / platform-tools:** the SBF toolchain ships `rustc 1.84.1` (platform-tools v1.51, `cargo-build-sbf 3.0.13`). pinocchio 0.10.2 (`features = ["cpi"]`) and its sub-crates build on this; do NOT switch the global avm/Solana toolchain to rebuild this PoC.
+- **`solana-address = 2.5.0` (pinned in `Cargo.lock`):** pinocchio depends on `solana-address "2.0"`, but versions 2.6.0+ raised their MSRV to `rustc 1.89.0` — newer than the SBF toolchain's 1.84.1 — and fail the build. 2.5.0 is the latest 2.x with MSRV 1.81. If you regenerate the lockfile, re-apply the pin: `cargo update -p solana-address --precise 2.5.0`.
+
+As with the Anchor PoCs, the compiled `.so` and keypairs are committed, so CI and `npm test` need no Rust toolchain at all.
 
 ## Claim accuracy — strict rules for contributors
 
@@ -107,6 +122,7 @@ agents/cpi-auditor.md
 commands/audit-cpi.md
 rules/rust.md
 poc/return-data-spoofing/
+poc/pinocchio-return-data/      # Pinocchio crown-jewel variant (cargo-build-sbf)
 poc/arbitrary-cpi/
 poc/account-reload/
 poc/pda-cpi-signing/
