@@ -1,10 +1,10 @@
 ---
-description: "Checklist-driven CPI safety review — locates CPI sites with grep, walks skill/cpi-checklist.md for each site, and emits a structured findings report."
+description: "Checklist-driven CPI safety review — locates CPI sites with grep, walks skills/solana-cpi-safety/cpi-checklist.md for each site, and emits a structured findings report."
 ---
 
 This command performs a guidance-driven CPI safety review of a Rust Solana program. It is not a static scanner and does not guarantee completeness — it walks a human-in-the-loop checklist against grep-identified sites and produces a structured report of what was found.
 
-The checklist content lives exclusively in `skill/cpi-checklist.md`. This command cites that file; it does not restate its items.
+The checklist content lives exclusively in `skills/solana-cpi-safety/cpi-checklist.md`. This command cites that file; it does not restate its items.
 
 ---
 
@@ -33,9 +33,9 @@ Record all matches. If a codebase has no hits for a given pattern, record that p
 
 ---
 
-## Step 2 — Walk skill/cpi-checklist.md for each site
+## Step 2 — Walk skills/solana-cpi-safety/cpi-checklist.md for each site
 
-Open `skill/cpi-checklist.md`. For each CPI site identified in Step 1, work through the four sections in that checklist in order:
+Open `skills/solana-cpi-safety/cpi-checklist.md`. For each CPI site identified in Step 1, work through the four sections in that checklist in order:
 
 - **Section 1 (Return-data trust):** apply to every `get_return_data` / `sol_get_return_data` hit.
 - **Section 2 (Arbitrary CPI / program substitution):** apply to every `invoke`, `invoke_signed`, and `CpiContext` hit.
@@ -59,7 +59,7 @@ Produce a Markdown report in the following exact format.
 | 2 | ... | ... | ... | ... |
 ```
 
-- `Pattern` — the specific check item from `skill/cpi-checklist.md` that failed (use the check item's short label).
+- `Pattern` — the specific check item from `skills/solana-cpi-safety/cpi-checklist.md` that failed (use the check item's short label).
 - `Location (file:line)` — exact file path relative to crate root and line number from grep output.
 - `Severity` — Critical / High / Medium, taken from the checklist item.
 - `Status` — Finding / Pass / N/A.
@@ -79,11 +79,11 @@ For each row with `Status: Finding`, add a detail block:
 <minimal code diff sketch showing the load-bearing change>
 ```
 
-The diff sketch should show the vulnerable line and the corrected replacement. It does not need to be a full patch. See the relevant sub-skill (`skill/arbitrary-cpi.md`, `skill/cpi-return-data-spoofing.md`, `skill/account-reload.md`, `skill/pda-cpi-signing.md`) for the full safe patterns.
+The diff sketch should show the vulnerable line and the corrected replacement. It does not need to be a full patch. See the relevant sub-skill (`skills/solana-cpi-safety/arbitrary-cpi.md`, `skills/solana-cpi-safety/cpi-return-data-spoofing.md`, `skills/solana-cpi-safety/account-reload.md`, `skills/solana-cpi-safety/pda-cpi-signing.md`) for the full safe patterns.
 
 ### Checklist coverage summary
 
-Close the report with a coverage table using the format defined at the end of `skill/cpi-checklist.md`:
+Close the report with a coverage table using the format defined at the end of `skills/solana-cpi-safety/cpi-checklist.md`:
 
 ```
 | Section | Class | Sites examined | Findings |

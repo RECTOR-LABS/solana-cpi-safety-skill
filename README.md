@@ -28,23 +28,23 @@ Both Anchor and native/Pinocchio patterns are covered.
 ### Skill bundle
 
 ```
-skill/
-  SKILL.md                      # Routing entry point
-  cpi-return-data-spoofing.md   # Crown jewel sub-skill
-  arbitrary-cpi.md              # Arbitrary CPI sub-skill
-  account-reload.md             # Stale account sub-skill
-  pda-cpi-signing.md            # PDA signing sub-skill
-  poc-harness.md                # PoC test harness guide
-  cpi-checklist.md              # Pre-audit CPI checklist
+skills/
+  solana-cpi-safety/
+    SKILL.md                    # Routing entry point
+    cpi-return-data-spoofing.md # Crown jewel sub-skill
+    arbitrary-cpi.md            # Arbitrary CPI sub-skill
+    account-reload.md           # Stale account sub-skill
+    pda-cpi-signing.md          # PDA signing sub-skill
+    poc-harness.md              # PoC test harness guide
+    cpi-checklist.md            # Pre-audit CPI checklist
+    rules/
+      rust.md                   # Rust code rule (Cursor .mdc)
 
 agents/
   cpi-auditor.md                # Autonomous CPI audit agent
 
 commands/
   audit-cpi.md                  # /audit-cpi command
-
-rules/
-  rust.md                       # Rust code rule (Cursor .mdc)
 
 poc/
   return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC (incl. Variant B)
@@ -99,20 +99,36 @@ Five runnable PoCs cover the four vulnerability classes — the crown-jewel clas
 
 ## Quickstart
 
-### Install (standalone)
+### Install
+
+One-line install (recommended) — full bundle (skill + `/audit-cpi` command + `cpi-auditor` agent), global (`~/.claude`):
+
+```bash
+npx @rector-labs/solana-cpi-safety-skill
+# project-local instead: npx @rector-labs/solana-cpi-safety-skill --project
+```
+
+Skill-only, via the open agent-skills ecosystem:
+
+```bash
+npx skills add RECTOR-LABS/solana-cpi-safety-skill
+```
+
+As a native Claude Code plugin (full bundle), via the RECTOR-LABS marketplace:
+
+```bash
+/plugin marketplace add RECTOR-LABS/claude-plugins
+/plugin install solana-cpi-safety@rector-labs
+```
+
+From a clone (no Node required):
 
 ```bash
 git clone https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git
-cd solana-cpi-safety-skill
-./install.sh
+cd solana-cpi-safety-skill && ./install.sh   # or ./install-custom.sh
 ```
 
-For custom install location (project-local or custom path):
-
-```bash
-./install-custom.sh
-# or: ./install-custom.sh /path/to/target
-```
+Then restart Claude Code. Note: installed as a plugin the command is namespaced `/solana-cpi-safety:audit-cpi`; via npx or `install.sh` it is `/audit-cpi`.
 
 ### Run a PoC
 
@@ -207,7 +223,7 @@ To rebuild the programs from source (optional):
 | Rust | 1.85+ |
 | Node.js | >= 20 |
 
-The skill bundle (skill/, commands/, agents/, rules/) has no runtime requirements — it is plain Markdown.
+The skill bundle (skills/solana-cpi-safety/, commands/, agents/) has no runtime requirements — it is plain Markdown.
 
 ## Repository structure
 
@@ -218,24 +234,30 @@ solana-cpi-safety-skill/
   LICENSE                     # MIT
   install.sh                  # Standard installer
   install-custom.sh           # Custom-path installer
+  package.json                # npm package (@rector-labs/solana-cpi-safety-skill)
+  bin/cli.mjs                 # Zero-dependency Node installer (npx)
+  test/                       # node:test suites (installer + manifest)
 
-  skill/
-    SKILL.md
-    cpi-return-data-spoofing.md
-    arbitrary-cpi.md
-    account-reload.md
-    pda-cpi-signing.md
-    poc-harness.md
-    cpi-checklist.md
+  .claude-plugin/
+    plugin.json               # Claude Code plugin manifest
+
+  skills/
+    solana-cpi-safety/
+      SKILL.md
+      cpi-return-data-spoofing.md
+      arbitrary-cpi.md
+      account-reload.md
+      pda-cpi-signing.md
+      poc-harness.md
+      cpi-checklist.md
+      rules/
+        rust.md
 
   agents/
     cpi-auditor.md
 
   commands/
     audit-cpi.md
-
-  rules/
-    rust.md
 
   poc/
     return-data-spoofing/
@@ -253,6 +275,23 @@ solana-cpi-safety-skill/
     pda-cpi-signing/
       programs/               # Anchor vault programs
       tests/                  # LiteSVM TypeScript test suite
+```
+
+## RECTOR-LABS Solana security suite
+
+This skill is the first of a three-part Solana security workflow from RECTOR-LABS — find vulnerabilities, prove them, respond to incidents:
+
+| Skill | Stage | Status |
+|-------|-------|--------|
+| **solana-cpi-safety** (this repo) | Find — detect and prevent CPI vulnerability classes | Available |
+| **solana-poc-forge** | Prove — forge runnable PoCs and exploits | Planned |
+| **solana-incident-response** | Respond — triage, contain, and disclose live incidents | Planned |
+
+All three install from the shared `rector-labs` marketplace:
+
+```bash
+/plugin marketplace add RECTOR-LABS/claude-plugins
+/plugin install solana-cpi-safety@rector-labs
 ```
 
 ## License

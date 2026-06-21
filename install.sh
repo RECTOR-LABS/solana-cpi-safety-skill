@@ -79,7 +79,7 @@ echo "Note: Your ~/.claude/CLAUDE.md will NOT be modified."
 echo ""
 
 if [ "$SKIP_CONFIRM" = false ]; then
-    read -p "Proceed with installation? [Y/n] " -n 1 -r
+    read -p "Proceed with installation? [Y/n] " -n 1 -r || true
     echo
     if [[ $REPLY =~ ^[Nn]$ ]]; then
         echo "Installation cancelled."
@@ -91,14 +91,14 @@ fi
 echo ""
 
 # Validate source
-for dir in skill commands agents rules; do
+for dir in skills/solana-cpi-safety commands agents; do
     if [ ! -d "$SCRIPT_DIR/$dir" ]; then
         echo "[ERROR] Source directory '$dir' not found in $SCRIPT_DIR"
         exit 1
     fi
 done
 
-# [1/3] Install the skill (flattened: skill/ CONTENTS go directly under the skill
+# [1/3] Install the skill (flattened: skills/solana-cpi-safety/ CONTENTS go directly under the skill
 # dir, so SKILL.md lands at $SKILL_PATH/SKILL.md where Claude Code discovers it).
 echo "[1/3] Installing skill..."
 if [ -d "$SKILL_PATH" ] && [ "$(ls -A "$SKILL_PATH" 2>/dev/null)" ]; then
@@ -106,12 +106,9 @@ if [ -d "$SKILL_PATH" ] && [ "$(ls -A "$SKILL_PATH" 2>/dev/null)" ]; then
     rm -rf "$SKILL_PATH"
 fi
 mkdir -p "$SKILL_PATH"
-cp -r "$SCRIPT_DIR/skill/." "$SKILL_PATH/"
-# Ship the Rust rule as reference material inside the skill dir. Claude Code has
-# no auto-on-edit rule mechanism (that is a Cursor feature), so it is kept here
-# for the skill to reference rather than installed as an (inert) global rule.
-mkdir -p "$SKILL_PATH/rules"
-cp "$SCRIPT_DIR/rules/"*.md "$SKILL_PATH/rules/"
+cp -r "$SCRIPT_DIR/skills/solana-cpi-safety/." "$SKILL_PATH/"
+# The Rust rule ships inside the skill dir (skills/solana-cpi-safety/rules/), so the
+# cp above already installed it as reference material -- no separate rules step.
 echo "  [OK] skill -> $SKILL_PATH/ (SKILL.md at root)"
 
 # [2/3] Install the /audit-cpi command where Claude Code discovers commands.

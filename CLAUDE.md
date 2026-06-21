@@ -73,6 +73,20 @@ Each scenario follows the EXPLOIT (lands before fix), DEFENSE (rejects after fix
 
 As with the Anchor PoCs, the compiled `.so` and keypairs are committed, so CI and `npm test` need no Rust toolchain at all.
 
+## Publishing the npm package
+
+`@rector-labs/solana-cpi-safety-skill` powers `npx @rector-labs/solana-cpi-safety-skill`. It is a scoped package, so it must be published public, and RECTOR runs the publish (OTP required):
+
+```bash
+# one-time: create the rector-labs npm org in the npm web UI
+npm login                      # account rz1989
+npm publish --access public    # scoped packages default to private; --access public is required
+```
+
+Keep `package.json` `version` and `.claude-plugin/plugin.json` `version` in sync. The `files` allowlist ships only the skill bundle (no `poc/`, no `docs/`); run `npm pack --dry-run` to confirm before publishing.
+
+The native plugin channel is the `rector-labs` marketplace, which lives in the dedicated **RECTOR-LABS/claude-plugins** repo (this repo ships only `.claude-plugin/plugin.json`). To list another RECTOR-LABS skill, add an entry to that repo's `marketplace.json`. Install: `/plugin marketplace add RECTOR-LABS/claude-plugins` then `/plugin install solana-cpi-safety@rector-labs`.
+
 ## Claim accuracy — strict rules for contributors
 
 The upstream finding that anchors this skill has precisely documented metrics. Never deviate from them.
@@ -111,16 +125,19 @@ docs/<scope>-DD-MM-YYYY
 ## Key files
 
 ```
-skill/SKILL.md                  # Routing entry point (read first)
-skill/cpi-return-data-spoofing.md  # Primary sub-skill
-skill/arbitrary-cpi.md
-skill/account-reload.md
-skill/pda-cpi-signing.md
-skill/poc-harness.md            # PoC test harness patterns
-skill/cpi-checklist.md          # Pre-audit checklist
+skills/solana-cpi-safety/SKILL.md                     # Routing entry point (read first)
+skills/solana-cpi-safety/cpi-return-data-spoofing.md  # Primary sub-skill
+skills/solana-cpi-safety/arbitrary-cpi.md
+skills/solana-cpi-safety/account-reload.md
+skills/solana-cpi-safety/pda-cpi-signing.md
+skills/solana-cpi-safety/poc-harness.md               # PoC test harness patterns
+skills/solana-cpi-safety/cpi-checklist.md             # Pre-audit checklist
+skills/solana-cpi-safety/rules/rust.md                # Rust code rule (now inside the skill)
 agents/cpi-auditor.md
 commands/audit-cpi.md
-rules/rust.md
+bin/cli.mjs                                           # npx installer (zero-dep)
+package.json                                          # npm package (@rector-labs/...)
+.claude-plugin/plugin.json                            # Claude Code plugin manifest
 poc/return-data-spoofing/
 poc/pinocchio-return-data/      # Pinocchio crown-jewel variant (cargo-build-sbf)
 poc/arbitrary-cpi/

@@ -34,13 +34,13 @@ Use this skill when you are:
 
 | Command | Description |
 |---------|-------------|
-| `/audit-cpi` | Checklist-driven CPI safety review across all four vulnerability classes (see [audit-cpi.md](../commands/audit-cpi.md), driven by [cpi-checklist.md](cpi-checklist.md)) |
+| `/audit-cpi` | Checklist-driven CPI safety review across all four vulnerability classes (see [audit-cpi.md](../../commands/audit-cpi.md), driven by [cpi-checklist.md](cpi-checklist.md)) |
 
 ## Agents
 
 | Agent | Purpose |
 |-------|---------|
-| `cpi-auditor` | Read-only CPI security auditor that runs the `/audit-cpi` flow against a target program or PR (see [cpi-auditor.md](../agents/cpi-auditor.md)) |
+| `cpi-auditor` | Read-only CPI security auditor that runs the `/audit-cpi` flow against a target program or PR (see [cpi-auditor.md](../../agents/cpi-auditor.md)) |
 
 ## Progressive Disclosure
 
@@ -52,3 +52,10 @@ Sub-skills to read when needed:
 - [pda-cpi-signing.md](pda-cpi-signing.md) — Safe use of `invoke_signed` with PDA signer seeds, canonical bump enforcement, and seed collision risks.
 - [poc-harness.md](poc-harness.md) — LiteSVM-based proof-of-concept test harness shared across all four vulnerability classes; how to build, run, and extend the PoCs.
 - [cpi-checklist.md](cpi-checklist.md) — Structured audit checklist covering all four CPI vulnerability classes; used by the `/audit-cpi` command and `cpi-auditor` agent.
+
+## Related skills
+
+This skill is part of the RECTOR-LABS Solana security suite (find -> prove -> respond). The following companion skills are planned and not yet available:
+
+- **solana-poc-forge** — forge standalone runnable proof-of-concept exploits for Solana programs (generalizes the PoC harness in [poc-harness.md](poc-harness.md)).
+- **solana-incident-response** — triage, contain, and disclose live Solana security incidents.

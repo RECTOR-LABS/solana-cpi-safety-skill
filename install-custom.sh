@@ -58,7 +58,7 @@ prompt_install_location() {
     echo "  [4] Cancel"
     echo ""
 
-    read -p "Select option [1-4]: " choice
+    read -p "Select option [1-4]: " choice || true
 
     case $choice in
         1)
@@ -69,7 +69,7 @@ prompt_install_location() {
             ;;
         3)
             echo ""
-            read -p "Enter target skill path: " custom_path
+            read -p "Enter target skill path: " custom_path || true
             if [ -z "$custom_path" ]; then
                 echo "[ERROR] No path entered. Installation cancelled."
                 exit 1
@@ -88,7 +88,7 @@ prompt_install_location() {
 }
 
 validate_source() {
-    for dir in skill commands agents rules; do
+    for dir in skills/solana-cpi-safety commands agents; do
         if [ ! -d "$SCRIPT_DIR/$dir" ]; then
             echo "[ERROR] Source directory '$dir' not found in $SCRIPT_DIR"
             exit 1
@@ -113,12 +113,11 @@ install_skill_bundle() {
         rm -rf "$INSTALL_PATH"
     fi
 
-    # [1] Skill (flattened): skill/ CONTENTS go directly under the target dir, so
+    # [1] Skill (flattened): skills/solana-cpi-safety/ CONTENTS go directly under the target dir, so
     # SKILL.md lands at $INSTALL_PATH/SKILL.md where Claude Code discovers it.
     mkdir -p "$INSTALL_PATH"
-    cp -r "$SCRIPT_DIR/skill/." "$INSTALL_PATH/"
-    mkdir -p "$INSTALL_PATH/rules"
-    cp "$SCRIPT_DIR/rules/"*.md "$INSTALL_PATH/rules/"
+    cp -r "$SCRIPT_DIR/skills/solana-cpi-safety/." "$INSTALL_PATH/"
+    # The Rust rule travels inside the skill dir now, so the cp above installs it.
     echo "  [OK] skill -> $INSTALL_PATH/ (SKILL.md at root)"
 
     # [2] Command + agent: Claude Code discovers these ONLY from the .claude/
