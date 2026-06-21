@@ -43,13 +43,10 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === "--project" || a === "-p") opts.project = true;
     else if (a === "--yes" || a === "-y") opts.yes = true;
-    else if (a === "--target" || a === "-t") {
-      const val = argv[++i];
-      if (val === undefined || val.startsWith("-")) { console.error(TARGET_USAGE); process.exit(1); }
-      opts.target = val;
-    } else if (a.startsWith("--target=")) {
-      const val = a.slice("--target=".length);
-      if (!val) { console.error(TARGET_USAGE); process.exit(1); }
+    else if (a === "--target" || a === "-t" || a.startsWith("--target=")) {
+      // Accept both `--target <dir>` / `-t <dir>` and `--target=<dir>`; one guard for all.
+      const val = a.startsWith("--target=") ? a.slice("--target=".length) : argv[++i];
+      if (val === undefined || val === "" || val.startsWith("-")) { console.error(TARGET_USAGE); process.exit(1); }
       opts.target = val;
     } else unknown.push(a);
   }

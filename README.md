@@ -127,8 +127,8 @@ From a clone (runs the same installer locally):
 git clone https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git
 cd solana-cpi-safety-skill
 node bin/cli.mjs                      # global (~/.claude)
-# project-local: node bin/cli.mjs --project
-# custom base:   node bin/cli.mjs --target <dir>
+# project-local: node bin/cli.mjs --project              # ./.claude
+# custom base:   node bin/cli.mjs --target <dir>         # <dir> is a config base: installs <dir>/skills, <dir>/commands, <dir>/agents
 ```
 
 Then restart Claude Code. Note: installed as a plugin the command is namespaced `/solana-cpi-safety:audit-cpi`; via npx or the local installer it is `/audit-cpi`.
