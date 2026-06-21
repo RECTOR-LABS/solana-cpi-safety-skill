@@ -1,0 +1,30 @@
+{
+  "name": "@rector-labs/solana-cpi-safety-skill",
+  "version": "1.0.0",
+  "description": "Detect and prevent four Solana CPI vulnerability classes (return-data spoofing, arbitrary CPI, stale-account-after-CPI, non-canonical PDA signing) in Claude Code.",
+  "type": "module",
+  "bin": {
+    "solana-cpi-safety-skill": "bin/cli.mjs"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "commands/",
+    "agents/",
+    ".claude-plugin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/cli.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["claude-code", "skill", "solana", "cpi", "security", "anchor", "pinocchio"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git"
+  },
+  "license": "MIT"
+}
