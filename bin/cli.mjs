@@ -28,12 +28,15 @@ Default scope: ~/.claude (global - available in all your projects).`;
 
 function parseArgs(argv) {
   const opts = { project: false, yes: false, help: false };
+  const unknown = [];
   for (const a of argv) {
     if (a === "--project" || a === "-p") opts.project = true;
     else if (a === "--yes" || a === "-y") opts.yes = true;
     else if (a === "--help" || a === "-h") opts.help = true;
-    else { console.error(`Unknown option: ${a}`); process.exit(1); }
+    else unknown.push(a);
   }
+  // --help wins even when an unknown flag precedes it; otherwise reject the first unknown.
+  if (!opts.help && unknown.length) { console.error(`Unknown option: ${unknown[0]}`); process.exit(1); }
   return opts;
 }
 
@@ -50,9 +53,26 @@ function copyMarkdown(srcDir, destDir) {
   }
 }
 
+// Fail before touching the user's config dir if the packaged source is incomplete,
+// so a corrupt package never wipes an existing install via copyDir's rmSync.
+function validateSource() {
+  const required = [
+    join(PKG_ROOT, "skills", SKILL_NAME, "SKILL.md"),
+    join(PKG_ROOT, "commands"),
+    join(PKG_ROOT, "agents"),
+  ];
+  for (const p of required) {
+    if (!existsSync(p)) {
+      console.error(`Installation aborted: packaged source '${p}' is missing. The package may be corrupt -- reinstall it.`);
+      process.exit(1);
+    }
+  }
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   if (opts.help) { console.log(HELP); return; }
+  validateSource();
 
   const base = opts.project ? resolve(process.cwd(), ".claude") : join(homedir(), ".claude");
   const skillDest = join(base, "skills", SKILL_NAME);
@@ -66,10 +86,16 @@ async function main() {
   console.log("");
 
   if (!opts.yes) {
-    const rl = createInterface({ input: stdin, output: stdout });
-    const ans = (await rl.question("Proceed with installation? [Y/n] ")).trim().toLowerCase();
-    rl.close();
-    if (ans === "n" || ans === "no") { console.log("Installation cancelled."); return; }
+    if (!stdin.isTTY) {
+      // No interactive terminal (piped/CI/non-TTY npx): proceed instead of hanging
+      // on a prompt that can never be answered. Pass --yes to silence this notice.
+      console.log("No interactive terminal detected; proceeding (pass --yes to skip this notice).");
+    } else {
+      const rl = createInterface({ input: stdin, output: stdout });
+      const ans = (await rl.question("Proceed with installation? [Y/n] ")).trim().toLowerCase();
+      rl.close();
+      if (ans === "n" || ans === "no") { console.log("Installation cancelled."); return; }
+    }
   }
 
   copyDir(join(PKG_ROOT, "skills", SKILL_NAME), skillDest);
