@@ -121,14 +121,17 @@ As a native Claude Code plugin (full bundle), via the RECTOR-LABS marketplace:
 /plugin install solana-cpi-safety@rector-labs
 ```
 
-From a clone (no Node required):
+From a clone (runs the same installer locally):
 
 ```bash
 git clone https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git
-cd solana-cpi-safety-skill && ./install.sh   # or ./install-custom.sh
+cd solana-cpi-safety-skill
+node bin/cli.mjs                      # global (~/.claude)
+# project-local: node bin/cli.mjs --project
+# custom base:   node bin/cli.mjs --target <dir>
 ```
 
-Then restart Claude Code. Note: installed as a plugin the command is namespaced `/solana-cpi-safety:audit-cpi`; via npx or `install.sh` it is `/audit-cpi`.
+Then restart Claude Code. Note: installed as a plugin the command is namespaced `/solana-cpi-safety:audit-cpi`; via npx or the local installer it is `/audit-cpi`.
 
 ### Run a PoC
 
@@ -232,10 +235,8 @@ solana-cpi-safety-skill/
   README.md                   # This file
   CLAUDE.md                   # Contributor guidance
   LICENSE                     # MIT
-  install.sh                  # Standard installer
-  install-custom.sh           # Custom-path installer
   package.json                # npm package (@rector-labs/solana-cpi-safety-skill)
-  bin/cli.mjs                 # Zero-dependency Node installer (npx)
+  bin/cli.mjs                 # Zero-dependency Node installer (npx and `node bin/cli.mjs`)
   test/                       # node:test suites (installer + manifest)
 
   .claude-plugin/

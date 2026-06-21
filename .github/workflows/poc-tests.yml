@@ -24,9 +24,9 @@ jobs:
         run: |
           # non-ASCII decoration: emojis, box-drawing, dingbats
           # (em-dash U+2014 and arrows U+2190-21FF are allowed and NOT in these ranges)
-          if grep -rlP "[\x{1F300}-\x{1FAFF}]|[\x{2500}-\x{257F}]|[\x{2600}-\x{27BF}]" skills commands agents README.md install.sh install-custom.sh CLAUDE.md .github 2>/dev/null; then echo "FAIL: non-ASCII decoration"; exit 1; fi
+          if grep -rlP "[\x{1F300}-\x{1FAFF}]|[\x{2500}-\x{257F}]|[\x{2600}-\x{27BF}]" skills commands agents README.md CLAUDE.md .github 2>/dev/null; then echo "FAIL: non-ASCII decoration"; exit 1; fi
           # inflated claims + religious wording
-          if grep -rilE "125 ?vuln|cvss[ .-]?10([^.]|$)|bismillah|inshaallah|alhamdulillah|mashaallah|subhanallah" skills commands agents README.md install.sh install-custom.sh CLAUDE.md 2>/dev/null; then echo "FAIL: forbidden claim/wording"; exit 1; fi
+          if grep -rilE "125 ?vuln|cvss[ .-]?10([^.]|$)|bismillah|inshaallah|alhamdulillah|mashaallah|subhanallah" skills commands agents README.md CLAUDE.md 2>/dev/null; then echo "FAIL: forbidden claim/wording"; exit 1; fi
           echo "guardrail lint passed"
 
   installer-tests:
