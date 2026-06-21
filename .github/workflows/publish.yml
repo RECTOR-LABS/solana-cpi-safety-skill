@@ -1,0 +1,48 @@
+# Publishes @rector-labs/solana-cpi-safety-skill to npm on a published GitHub Release,
+# using npm Trusted Publishing (OIDC) -- no stored NPM_TOKEN. Provenance attestation is
+# automatic under trusted publishing (no --access/--provenance flags needed: access=public
+# comes from package.json publishConfig). One-time setup: configure the trusted publisher
+# at npmjs.com -> the package -> Settings -> Trusted Publishing -> GitHub Actions with
+# org RECTOR-LABS, repo solana-cpi-safety-skill, workflow filename publish.yml.
+# Note: a package's FIRST version cannot be published via OIDC (npm/cli#8544); 1.0.0 was
+# bootstrapped manually, after which this workflow handles every subsequent release.
+
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read       # actions/checkout
+      id-token: write      # mint the OIDC token for trusted publishing + provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.x"                        # npm 11.x satisfies the OIDC >= 11.5.1 requirement
+          registry-url: "https://registry.npmjs.org"  # writes the registry into .npmrc
+
+      # Defensive: guarantee an OIDC-capable npm even if the runner image lags.
+      - name: Ensure OIDC-capable npm
+        run: npm install -g npm@latest && npm --version
+
+      - name: Verify the release tag matches package.json version
+        run: |
+          PKG="v$(node -p "require('./package.json').version")"
+          TAG="${{ github.event.release.tag_name }}"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::release tag $TAG does not match package.json $PKG"
+            exit 1
+          fi
+
+      - name: Run installer and manifest tests
+        run: npm test
+
+      # Trusted publishing: OIDC auth + provenance are automatic; no NODE_AUTH_TOKEN.
+      - name: Publish
+        run: npm publish
