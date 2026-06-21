@@ -1,0 +1,8 @@
+{
+  "name": "solana-cpi-safety",
+  "description": "Detect and prevent four Solana CPI vulnerability classes: return-data spoofing, arbitrary CPI, stale-account-after-CPI, and non-canonical PDA signing.",
+  "version": "1.0.0",
+  "author": { "name": "RECTOR", "url": "https://github.com/RECTOR-LABS" },
+  "repository": "https://github.com/RECTOR-LABS/solana-cpi-safety-skill",
+  "license": "MIT"
+}

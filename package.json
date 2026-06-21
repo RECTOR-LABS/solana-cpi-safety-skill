@@ -16,7 +16,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/cli.test.mjs"
+    "test": "node --test test/cli.test.mjs test/manifests.test.mjs"
   },
   "engines": {
     "node": ">=18"
