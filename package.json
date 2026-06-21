@@ -19,7 +19,7 @@
     "test": "node --test test/cli.test.mjs test/manifests.test.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "keywords": ["claude-code", "skill", "solana", "cpi", "security", "anchor", "pinocchio"],
   "repository": {
