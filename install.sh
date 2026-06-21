@@ -79,7 +79,7 @@ echo "Note: Your ~/.claude/CLAUDE.md will NOT be modified."
 echo ""
 
 if [ "$SKIP_CONFIRM" = false ]; then
-    read -p "Proceed with installation? [Y/n] " -n 1 -r
+    read -p "Proceed with installation? [Y/n] " -n 1 -r || true
     echo
     if [[ $REPLY =~ ^[Nn]$ ]]; then
         echo "Installation cancelled."

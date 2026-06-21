@@ -58,7 +58,7 @@ prompt_install_location() {
     echo "  [4] Cancel"
     echo ""
 
-    read -p "Select option [1-4]: " choice
+    read -p "Select option [1-4]: " choice || true
 
     case $choice in
         1)
@@ -69,7 +69,7 @@ prompt_install_location() {
             ;;
         3)
             echo ""
-            read -p "Enter target skill path: " custom_path
+            read -p "Enter target skill path: " custom_path || true
             if [ -z "$custom_path" ]; then
                 echo "[ERROR] No path entered. Installation cancelled."
                 exit 1
