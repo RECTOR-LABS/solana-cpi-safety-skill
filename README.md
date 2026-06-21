@@ -38,7 +38,7 @@ skills/
     poc-harness.md              # PoC test harness guide
     cpi-checklist.md            # Pre-audit CPI checklist
     rules/
-      rust.md                   # Rust code rule (Cursor .mdc)
+      rust.md                   # Rust code rule (Cursor-style globs frontmatter)
 
 agents/
   cpi-auditor.md                # Autonomous CPI audit agent
@@ -64,7 +64,7 @@ A dedicated sub-agent that performs systematic CPI audits. Routes to the appropr
 
 ### The rust.md rule
 
-A Rust code rule in Cursor `.mdc` format (`globs:` frontmatter). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
+A Rust code rule with Cursor-style `globs:` frontmatter (shipped as `rust.md` so it renders on GitHub). In Cursor it auto-loads on Rust file edits and routes CPI-touching changes to the relevant sub-skill and `cpi-checklist.md`. Claude Code has no auto-on-edit rule mechanism, so there it is reference material the skill cites — or drop it into a project `.claude/rules/` (with `paths:` frontmatter) for path-scoped context.
 
 ### Runnable PoCs
 
