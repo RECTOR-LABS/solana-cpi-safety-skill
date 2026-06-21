@@ -34,13 +34,13 @@ Use this skill when you are:
 
 | Command | Description |
 |---------|-------------|
-| `/audit-cpi` | Checklist-driven CPI safety review across all four vulnerability classes (see [audit-cpi.md](../commands/audit-cpi.md), driven by [cpi-checklist.md](cpi-checklist.md)) |
+| `/audit-cpi` | Checklist-driven CPI safety review across all four vulnerability classes (see [audit-cpi.md](../../commands/audit-cpi.md), driven by [cpi-checklist.md](cpi-checklist.md)) |
 
 ## Agents
 
 | Agent | Purpose |
 |-------|---------|
-| `cpi-auditor` | Read-only CPI security auditor that runs the `/audit-cpi` flow against a target program or PR (see [cpi-auditor.md](../agents/cpi-auditor.md)) |
+| `cpi-auditor` | Read-only CPI security auditor that runs the `/audit-cpi` flow against a target program or PR (see [cpi-auditor.md](../../agents/cpi-auditor.md)) |
 
 ## Progressive Disclosure
 

@@ -28,23 +28,23 @@ Both Anchor and native/Pinocchio patterns are covered.
 ### Skill bundle
 
 ```
-skill/
-  SKILL.md                      # Routing entry point
-  cpi-return-data-spoofing.md   # Crown jewel sub-skill
-  arbitrary-cpi.md              # Arbitrary CPI sub-skill
-  account-reload.md             # Stale account sub-skill
-  pda-cpi-signing.md            # PDA signing sub-skill
-  poc-harness.md                # PoC test harness guide
-  cpi-checklist.md              # Pre-audit CPI checklist
+skills/
+  solana-cpi-safety/
+    SKILL.md                    # Routing entry point
+    cpi-return-data-spoofing.md # Crown jewel sub-skill
+    arbitrary-cpi.md            # Arbitrary CPI sub-skill
+    account-reload.md           # Stale account sub-skill
+    pda-cpi-signing.md          # PDA signing sub-skill
+    poc-harness.md              # PoC test harness guide
+    cpi-checklist.md            # Pre-audit CPI checklist
+    rules/
+      rust.md                   # Rust code rule (Cursor .mdc)
 
 agents/
   cpi-auditor.md                # Autonomous CPI audit agent
 
 commands/
   audit-cpi.md                  # /audit-cpi command
-
-rules/
-  rust.md                       # Rust code rule (Cursor .mdc)
 
 poc/
   return-data-spoofing/         # Runnable LiteSVM + TypeScript PoC (incl. Variant B)
@@ -207,7 +207,7 @@ To rebuild the programs from source (optional):
 | Rust | 1.85+ |
 | Node.js | >= 20 |
 
-The skill bundle (skill/, commands/, agents/, rules/) has no runtime requirements — it is plain Markdown.
+The skill bundle (skills/solana-cpi-safety/, commands/, agents/) has no runtime requirements — it is plain Markdown.
 
 ## Repository structure
 
@@ -219,23 +219,23 @@ solana-cpi-safety-skill/
   install.sh                  # Standard installer
   install-custom.sh           # Custom-path installer
 
-  skill/
-    SKILL.md
-    cpi-return-data-spoofing.md
-    arbitrary-cpi.md
-    account-reload.md
-    pda-cpi-signing.md
-    poc-harness.md
-    cpi-checklist.md
+  skills/
+    solana-cpi-safety/
+      SKILL.md
+      cpi-return-data-spoofing.md
+      arbitrary-cpi.md
+      account-reload.md
+      pda-cpi-signing.md
+      poc-harness.md
+      cpi-checklist.md
+      rules/
+        rust.md
 
   agents/
     cpi-auditor.md
 
   commands/
     audit-cpi.md
-
-  rules/
-    rust.md
 
   poc/
     return-data-spoofing/

@@ -6,7 +6,7 @@ This is the single source of truth for CPI-safety review checks across this skil
 
 ## Section 1 — Return-Data Trust
 
-**Class:** CPI return-data spoofing (novel class; see `skill/cpi-return-data-spoofing.md` for full treatment)
+**Class:** CPI return-data spoofing (novel class; see `cpi-return-data-spoofing.md` for full treatment)
 
 **Detection signal:**
 
@@ -41,7 +41,7 @@ rg -n 'let\s*\(\s*_+\s*,' --type rust | grep 'get_return_data'
 
 ## Section 2 — Arbitrary CPI / Program Substitution
 
-**Class:** Caller-supplied program id invoked without pinning; fake-SPL variant (see `skill/arbitrary-cpi.md`)
+**Class:** Caller-supplied program id invoked without pinning; fake-SPL variant (see `arbitrary-cpi.md`)
 
 **Detection signal:**
 
@@ -71,7 +71,7 @@ rg -n 'UncheckedAccount|AccountInfo' --type rust
 
 ## Section 3 — Account Reload After CPI
 
-**Class:** Stale deserialized account state read after CPI (see `skill/account-reload.md`)
+**Class:** Stale deserialized account state read after CPI (see `account-reload.md`)
 
 **Detection signal:**
 
@@ -101,7 +101,7 @@ rg -n '\.reload\(\)' --type rust
 
 ## Section 4 — PDA invoke_signed
 
-**Class:** Non-canonical bump or attacker-influenced seeds in `invoke_signed` (see `skill/pda-cpi-signing.md`)
+**Class:** Non-canonical bump or attacker-influenced seeds in `invoke_signed` (see `pda-cpi-signing.md`)
 
 **Detection signal:**
 

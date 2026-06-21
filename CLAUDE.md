@@ -111,16 +111,16 @@ docs/<scope>-DD-MM-YYYY
 ## Key files
 
 ```
-skill/SKILL.md                  # Routing entry point (read first)
-skill/cpi-return-data-spoofing.md  # Primary sub-skill
-skill/arbitrary-cpi.md
-skill/account-reload.md
-skill/pda-cpi-signing.md
-skill/poc-harness.md            # PoC test harness patterns
-skill/cpi-checklist.md          # Pre-audit checklist
+skills/solana-cpi-safety/SKILL.md                     # Routing entry point (read first)
+skills/solana-cpi-safety/cpi-return-data-spoofing.md  # Primary sub-skill
+skills/solana-cpi-safety/arbitrary-cpi.md
+skills/solana-cpi-safety/account-reload.md
+skills/solana-cpi-safety/pda-cpi-signing.md
+skills/solana-cpi-safety/poc-harness.md               # PoC test harness patterns
+skills/solana-cpi-safety/cpi-checklist.md             # Pre-audit checklist
+skills/solana-cpi-safety/rules/rust.md                # Rust code rule (now inside the skill)
 agents/cpi-auditor.md
 commands/audit-cpi.md
-rules/rust.md
 poc/return-data-spoofing/
 poc/pinocchio-return-data/      # Pinocchio crown-jewel variant (cargo-build-sbf)
 poc/arbitrary-cpi/
