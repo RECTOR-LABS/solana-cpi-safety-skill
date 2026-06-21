@@ -26,5 +26,8 @@
     "type": "git",
     "url": "git+https://github.com/RECTOR-LABS/solana-cpi-safety-skill.git"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }
