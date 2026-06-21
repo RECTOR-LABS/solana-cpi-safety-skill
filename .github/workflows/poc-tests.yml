@@ -29,6 +29,19 @@ jobs:
           if grep -rilE "125 ?vuln|cvss[ .-]?10([^.]|$)|bismillah|inshaallah|alhamdulillah|mashaallah|subhanallah" skills commands agents README.md install.sh install-custom.sh CLAUDE.md 2>/dev/null; then echo "FAIL: forbidden claim/wording"; exit 1; fi
           echo "guardrail lint passed"
 
+  installer-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The npx installer + plugin manifest tests (zero runtime deps, so no npm ci).
+      - name: Run installer and manifest tests
+        run: npm test
+
   test:
     runs-on: ubuntu-latest
     strategy:
