@@ -16,7 +16,7 @@ This document explains how to build and run the runnable proof-of-concept scenar
 Install Anchor via `avm`:
 
 ```bash
-cargo install --git https://github.com/coral-xyz/anchor avm --force
+cargo install --git https://github.com/otter-sec/anchor avm --force
 avm install 1.0.2
 avm use 1.0.2
 ```
